@@ -65,6 +65,37 @@ body {
     animation: beamPulse 8s ease-in-out infinite;
 }
 
+.contact-name {
+    font-size: 20px;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 10px 0 5px 0;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+}
+
+.contact-title {
+    font-size: 13px;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.contact-details {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.contact-details .contact-value {
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 @keyframes beamPulse {
     0%, 100% { opacity: 0.8; }
     50% { opacity: 1; }
