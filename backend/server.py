@@ -928,7 +928,8 @@ async def emergent_auth_session(request: Request):
         raise
     except Exception as e:
         logger.error(f"Emergent auth session error: {e}")
-        raise HTTPException(status_code=500, detail="Authentication failed")
+        # Detailed error for debugging live environment
+        raise HTTPException(status_code=500, detail=f"Authentication failed: {str(e)}")
 
 @api_router.get("/auth/google/login")
 async def google_login(request: Request):
@@ -3776,7 +3777,12 @@ app.include_router(api_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://grand-palace.onrender.com"
+        "https://grand-palace.onrender.com",
+        "https://grand-palace-backend.onrender.com",
+        "http://localhost:3000",
+        "http://localhost:3002",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3002"
     ],
     allow_credentials=True,
     allow_methods=["*"],
