@@ -898,7 +898,7 @@ async def emergent_auth_session(request: Request):
             "email": email,
             "password": None,
             "name": name,
-            "phone": "",
+            "phone": None,
             "role": "customer",
             "addresses": [],
             "created_at": datetime.now(timezone.utc).isoformat(),
