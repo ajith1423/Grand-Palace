@@ -928,8 +928,7 @@ async def emergent_auth_session(request: Request):
         raise
     except Exception as e:
         logger.error(f"Emergent auth session error: {e}")
-        # Detailed error for debugging live environment
-        raise HTTPException(status_code=500, detail=f"Authentication failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Authentication failed")
 
 @api_router.get("/auth/google/login")
 async def google_login(request: Request):
