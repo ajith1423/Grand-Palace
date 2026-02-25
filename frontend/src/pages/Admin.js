@@ -649,6 +649,7 @@ export const AdminOrders = () => {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -656,12 +657,17 @@ export const AdminOrders = () => {
   useEffect(() => {
     if (!user || user.role !== 'admin') { navigate('/login'); return; }
     fetchOrders();
+    // Auto-refresh every 60 seconds
+    const interval = setInterval(fetchOrders, 60000);
+    return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, navigate]);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (isManual = false) => {
+    if (isManual) setRefreshing(true);
     try { const res = await axios.get(`${API}/orders/all`, { headers: getAuthHeaders() }); setOrders(res.data.orders || []); } catch (e) { toast.error('Failed to load orders'); }
     setLoading(false);
+    if (isManual) setRefreshing(false);
   };
 
   const updateStatus = async (orderId, status) => {
@@ -706,12 +712,18 @@ export const AdminOrders = () => {
         ))}
       </div>
 
-      {/* Search */}
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <input type="text" placeholder="Search by order number, customer name, or phone..."
-          className="w-full pl-9 pr-4 py-2.5 rounded-lg border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold"
-          value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+      {/* Search + Refresh */}
+      <div className="flex gap-2 mb-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input type="text" placeholder="Search by order number, customer name, or phone..."
+            className="w-full pl-9 pr-4 py-2.5 rounded-lg border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold"
+            value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+        </div>
+        <Button variant="outline" size="sm" className="h-10 gap-1.5 px-3 whitespace-nowrap" onClick={() => fetchOrders(true)} disabled={refreshing}>
+          <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          {refreshing ? 'Refreshing...' : 'Refresh'}
+        </Button>
       </div>
 
       {filteredOrders.length === 0 ? (

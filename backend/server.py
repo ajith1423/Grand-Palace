@@ -2304,13 +2304,7 @@ async def create_order(order: OrderCreate, background_tasks: BackgroundTasks, us
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
     
-    print(f"DEBUG: Inserting order {order_number} into collection {db.orders.name} in DB {db.name}")
-    try:
-        result = await db.orders.insert_one(order_doc)
-        print(f"DEBUG: Inserted order. Result ID: {result.inserted_id}")
-    except Exception as e:
-        print(f"DEBUG: FAILED TO INSERT ORDER: {e}")
-        raise e
+    await db.orders.insert_one(order_doc)
     
     # Update stock
     for item in order.items:

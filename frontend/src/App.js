@@ -390,7 +390,9 @@ const CheckoutPage = () => {
   const [showVerificationModal, setShowVerificationModal] = useState(false);
 
   // Check if user email is verified (required for checkout)
-  const emailVerified = user?.email_verified || user?.role === 'admin';
+  // Allow guests (no user) to always proceed since they provide email in the form.
+  // For logged-in users, check email_verified flag.
+  const emailVerified = !user || user?.email_verified || user?.role === 'admin';
 
   // Check if prices are hidden (quotation mode) or both payment methods are disabled
   const showPrices = settings?.show_prices !== false;
