@@ -1,0 +1,81 @@
+
+> frontend@0.1.0 start
+> craco start
+
+(node:61850) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:61850) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+Starting the development server...
+
+Compiled with warnings.
+
+[eslint] 
+src/App.js
+  Line 924:106:  React Hook useEffect has a missing dependency: 'fetchStats'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src/pages/AccountPage.js
+  Line 535:6:  React Hook useEffect has a missing dependency: 'fetchOrders'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  Line 652:6:  React Hook useEffect has a missing dependency: 'fetchOrder'. Either include it or remove the dependency array   react-hooks/exhaustive-deps
+
+src/pages/Admin.js
+  Line 40:6:   React Hook useEffect has missing dependencies: 'fetchCustomers' and 'navigate'. Either include them or remove the dependency array        react-hooks/exhaustive-deps
+  Line 198:6:  React Hook useEffect has missing dependencies: 'fetchCategories' and 'fetchProducts'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  Line 574:6:  React Hook useEffect has a missing dependency: 'fetchOrders'. Either include it or remove the dependency array                            react-hooks/exhaustive-deps
+  Line 657:6:  React Hook useEffect has a missing dependency: 'fetchCategories'. Either include it or remove the dependency array                        react-hooks/exhaustive-deps
+  Line 746:6:  React Hook useEffect has a missing dependency: 'fetchSettings'. Either include it or remove the dependency array                          react-hooks/exhaustive-deps
+
+src/pages/CustomerERPView.js
+  Line 52:6:  React Hook useEffect has a missing dependency: 'fetchCustomers'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src/pages/ERPDashboard.js
+  Line 191:6:  React Hook useEffect has a missing dependency: 'fetchDashboardData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src/pages/ERPSettings.js
+  Line 38:6:  React Hook useEffect has a missing dependency: 'fetchSettings'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src/pages/InvoiceManagement.js
+  Line 47:6:  React Hook useEffect has missing dependencies: 'fetchInvoices' and 'fetchOrdersWithoutInvoice'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+src/pages/ProductDetailPage.js
+  Line 353:6:  React Hook useEffect has a missing dependency: 'fetchReviews'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src/pages/ReportsModule.js
+  Line 41:6:  React Hook useEffect has a missing dependency: 'fetchReport'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/App.js
+  Line 924:106:  React Hook useEffect has a missing dependency: 'fetchStats'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src/pages/AccountPage.js
+  Line 535:6:  React Hook useEffect has a missing dependency: 'fetchOrders'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  Line 652:6:  React Hook useEffect has a missing dependency: 'fetchOrder'. Either include it or remove the dependency array   react-hooks/exhaustive-deps
+
+src/pages/Admin.js
+  Line 40:6:   React Hook useEffect has missing dependencies: 'fetchCustomers' and 'navigate'. Either include them or remove the dependency array        react-hooks/exhaustive-deps
+  Line 198:6:  React Hook useEffect has missing dependencies: 'fetchCategories' and 'fetchProducts'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  Line 574:6:  React Hook useEffect has a missing dependency: 'fetchOrders'. Either include it or remove the dependency array                            react-hooks/exhaustive-deps
+  Line 657:6:  React Hook useEffect has a missing dependency: 'fetchCategories'. Either include it or remove the dependency array                        react-hooks/exhaustive-deps
+  Line 746:6:  React Hook useEffect has a missing dependency: 'fetchSettings'. Either include it or remove the dependency array                          react-hooks/exhaustive-deps
+
+src/pages/CustomerERPView.js
+  Line 52:6:  React Hook useEffect has a missing dependency: 'fetchCustomers'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src/pages/ERPDashboard.js
+  Line 191:6:  React Hook useEffect has a missing dependency: 'fetchDashboardData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src/pages/ERPSettings.js
+  Line 38:6:  React Hook useEffect has a missing dependency: 'fetchSettings'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src/pages/InvoiceManagement.js
+  Line 47:6:  React Hook useEffect has missing dependencies: 'fetchInvoices' and 'fetchOrdersWithoutInvoice'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+src/pages/ProductDetailPage.js
+  Line 353:6:  React Hook useEffect has a missing dependency: 'fetchReviews'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src/pages/ReportsModule.js
+  Line 41:6:  React Hook useEffect has a missing dependency: 'fetchReport'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning

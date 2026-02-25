@@ -1,0 +1,101 @@
+{
+  "summary": "Comprehensive testing of Price Hide/Show Toggle feature (Quotation Model). All 10 backend API tests passed. Frontend UI testing verified all quotation mode features including product cards, product detail page, cart (Inquiry List), and checkout (Request Quotation). Login text next to login icon also verified.",
+  
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "CheckoutPage",
+        "issues": ["Console warning: 'You should call navigate() in a React.useEffect()' - code quality improvement recommended"]
+      }
+    ]
+  },
+  
+  "passed_tests": {
+    "backend": [
+      "GET /api/settings includes show_prices field (200)",
+      "GET /api/erp/settings includes show_prices field (200)",
+      "PUT /api/erp/settings - toggle show_prices to false (200)",
+      "PUT /api/erp/settings - toggle show_prices to true (200)",
+      "ERP settings requires admin authentication (401/403)",
+      "Products API works regardless of show_prices setting",
+      "Single product API works regardless of show_prices setting",
+      "POST /api/cart-enquiry works for quotation mode (200)",
+      "Toggle state consistency between ERP and public settings",
+      "Final state reset to show_prices=true"
+    ],
+    "frontend": [
+      "Login text visible next to login icon when not logged in",
+      "ERP Settings Storefront tab accessible",
+      "Show Prices on Website toggle present in Storefront tab",
+      "Toggle label and description correct ('When disabled, prices will be hidden and customers will need to request quotes')",
+      "Product cards show 'Request Quote' instead of prices when show_prices=false",
+      "Product cards show 'Add to Inquiry' button instead of 'Add to Cart' when show_prices=false",
+      "Product detail page shows 'Request Quote for Pricing' when show_prices=false",
+      "Product detail page shows 'Add to Inquiry' and 'Get Quote' buttons when show_prices=false",
+      "Cart page becomes 'Inquiry List' when show_prices=false",
+      "Cart shows 'Prices are available upon request' message",
+      "Cart shows 'Request Quotation' button instead of 'Proceed to Checkout'",
+      "Products page shows prices with AED values when show_prices=true",
+      "Discount badges (% OFF) visible when show_prices=true",
+      "Add to Cart button visible when show_prices=true"
+    ]
+  },
+  
+  "test_report_links": [
+    "/app/backend/tests/test_price_toggle.py",
+    "/app/test_reports/pytest/pytest_price_toggle_results.xml"
+  ],
+  
+  "action_items": [],
+  
+  "critical_code_review_comments": [
+    "Price toggle feature implemented correctly across frontend and backend",
+    "Settings API correctly exposes show_prices in public settings for frontend consumption",
+    "AppContext correctly fetches and propagates show_prices to all components",
+    "ProductCard, ProductDetailPage, CartPage, and CheckoutPage all correctly handle quotation mode",
+    "Minor: CheckoutPage has navigate() call outside useEffect - should be refactored for React best practices"
+  ],
+  
+  "updated_files": [
+    "/app/backend/tests/test_price_toggle.py"
+  ],
+  
+  "success_rate": {
+    "backend": "100% (10/10 tests passed)",
+    "frontend": "100% (14/14 UI features verified)"
+  },
+  
+  "test_credentials": {
+    "admin_email": "admin@gpgt.ae",
+    "admin_password": "admin123"
+  },
+  
+  "seed_data_creation": "None - used existing product data",
+  
+  "retest_needed": false,
+  
+  "should_main_agent_self_test": false,
+  
+  "context_for_next_testing_agent": "Price Hide/Show Toggle feature fully implemented and tested. Backend API: PUT /api/erp/settings with {show_prices: boolean} controls the setting. Public API GET /api/settings returns show_prices for frontend. When show_prices=false: ProductCard shows 'Request Quote' and 'Add to Inquiry', ProductDetailPage shows 'Request Quote for Pricing' with 'Add to Inquiry'/'Get Quote' buttons, CartPage becomes 'Inquiry List' with 'Request Quotation' button. When show_prices=true: All prices visible with AED values, discount badges, and normal cart/checkout flow. Login text label next to login icon verified working.",
+  
+  "features_verified": {
+    "price_toggle_in_erp_settings": "PASS - Storefront tab with 'Show Prices on Website' toggle",
+    "show_prices_false_product_cards": "PASS - Shows 'Request Quote' and 'Add to Inquiry'",
+    "show_prices_false_product_detail": "PASS - Shows 'Request Quote for Pricing'",
+    "show_prices_false_cart_page": "PASS - Becomes 'Inquiry List' with no prices",
+    "show_prices_false_checkout": "PASS - Becomes 'Request Quotation'",
+    "show_prices_true_all_visible": "PASS - All prices visible normally",
+    "login_text_next_to_icon": "PASS - 'Login' text visible when not logged in"
+  },
+  
+  "mocked_integrations": {
+    "email_sending": "MOCKED - SendGrid API key not configured, cart enquiry emails may not be delivered"
+  }
+}

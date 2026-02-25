@@ -1,0 +1,22 @@
+/Users/ajith/Downloads/Gpgt-conflict_220226_2239/venv/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/ajith/Downloads/Gpgt-conflict_220226_2239/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/ajith/Downloads/Gpgt-conflict_220226_2239/venv/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+INFO:     Started server process [94538]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:5001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:51335 - "GET /api/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51334 - "GET /api/products/4ad6ccfa-42b9-4210-b11b-eec436f89600 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51336 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51335 - "GET /api/products/4ad6ccfa-42b9-4210-b11b-eec436f89600 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51352 - "GET /api/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51335 - "GET /api/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51336 - "GET /api/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51352 - "GET /api/cart?session_id=session_0f06fa68c1e243b9b89cafb46843b3c3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51334 - "GET /api/products/4ad6ccfa-42b9-4210-b11b-eec436f89600/reviews?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51354 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51354 - "GET /api/cart?session_id=session_0f06fa68c1e243b9b89cafb46843b3c3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51352 - "GET /api/products/4ad6ccfa-42b9-4210-b11b-eec436f89600/reviews?page=1&limit=5 HTTP/1.1" 200 OK

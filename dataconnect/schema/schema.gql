@@ -1,0 +1,27 @@
+type User @table {
+  displayName: String!
+  createdAt: Timestamp!
+  email: String
+  photoUrl: String
+}
+
+type Conversation @table {
+  user: User!
+  createdAt: Timestamp!
+  title: String
+  isFavorite: Boolean
+}
+
+type Message @table {
+  conversation: Conversation!
+  user: User
+  content: String!
+  role: String!
+  createdAt: Timestamp!
+}
+
+type PromptTemplate @table {
+  name: String!
+  templateText: String!
+  description: String
+}
