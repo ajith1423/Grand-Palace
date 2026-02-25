@@ -27,7 +27,6 @@ async def update_product_and_category():
         wc_doc = {
             "id": wc_id,
             "name": wc_name,
-            "name_ar": None,
             "description": "Premium collection of Water Closets",
             "image": None,
             "icon": "Toilet",

@@ -16,13 +16,12 @@ const Footer = () => {
           <div>
             <div className="mb-6">
               <img
-                src={settings?.logo || '/logo.png'}
+                src={settings?.logo || '/logo1.jpeg'}
                 alt="Grand Palace Logo"
                 className="h-16 w-auto object-contain bg-white p-2 rounded-lg"
               />
             </div>
             <p className="text-gray-400 mb-4">Your trusted partner in construction materials and general trading across UAE.</p>
-            <p className="text-gold font-arabic text-sm" dir="rtl">شريكك الموثوق في مواد البناء</p>
           </div>
 
           <div>
@@ -51,13 +50,13 @@ const Footer = () => {
             <div className="space-y-3">
               <p className="flex items-center gap-2 text-gray-400">
                 <MapPin className="h-4 w-4 text-gold" />
-                {settings.company_address || 'Dubai, UAE'}
+                {settings.company_address || 'Shop No:3 Al Sajaya Building, Al Qusais 2, Damascus St.  244, Sector, Dubai, United Arab Emirates'}
               </p>
-              <a href={`tel:+971545680916`} className="flex items-center gap-2 text-gray-400 hover:text-gold" title="Mobile">
+              <a href={`tel:${settings.company_mobile || '+971545680916'}`} className="flex items-center gap-2 text-gray-400 hover:text-gold" title="Mobile">
                 <Phone className="h-4 w-4 text-gold" />
                 {settings.company_mobile || '+971 54 568 0916'}
               </a>
-              <a href={`tel:+97142727815`} className="flex items-center gap-2 text-gray-400 hover:text-gold" title="Landline">
+              <a href={`tel:${settings.company_phone || '+97142727815'}`} className="flex items-center gap-2 text-gray-400 hover:text-gold" title="Landline">
                 <Phone className="h-4 w-4 text-gold" />
                 {settings.company_phone || '+971 4 272 7815'}
               </a>

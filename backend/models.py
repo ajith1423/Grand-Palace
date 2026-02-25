@@ -42,9 +42,7 @@ class AdminRole(str, Enum):
 class ProductEnhanced(BaseModel):
     # Existing fields
     name: str
-    name_ar: Optional[str] = None
     description: str
-    description_ar: Optional[str] = None
     price: float  # This will be selling_price
     offer_price: Optional[float] = None
     category_id: str
@@ -58,6 +56,7 @@ class ProductEnhanced(BaseModel):
     faqs: Optional[List[Dict[str, str]]] = []
     is_active: bool = True
     is_featured: bool = False
+    is_test: bool = False
     
     # New ERP fields
     cost_price: Optional[float] = 0.0
@@ -139,9 +138,10 @@ class InvoiceUpdate(BaseModel):
 class ERPSettings(BaseModel):
     # Company Info
     company_name: str = "Grand Palace General Trading"
-    company_address: str = "Dubai, UAE"
-    company_phone: str = "+971 4 456 7890"
-    company_email: str = "info@gpgt.ae"
+    company_address: str = "Shop No:3 Al Sajaya Building, Al Qusais 2, Damascus St.  244, Sector, Dubai, United Arab Emirates"
+    company_phone: str = "+971 4 272 7815"
+    company_mobile: str = "+971 54 568 0916"
+    company_email: str = "sales@gpgt.ae"
     company_trn: str = ""  # VAT TRN (UAE)
     company_logo: Optional[str] = None  # Logo URL
     

@@ -55,9 +55,9 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   const defaultHeroSlides = [
-    { image: "https://images.unsplash.com/photo-1707064892275-a3088e8240be?w=1200", title: "Quality Building Materials", title_ar: "مواد بناء عالية الجودة", subtitle: "Your Trusted Partner in Construction & Trading" },
-    { image: "https://images.unsplash.com/photo-1745449563046-f75d0bd28f46?w=1200", title: "Industrial Tools & Equipment", title_ar: "أدوات ومعدات صناعية", subtitle: "Professional Grade Tools for Every Project" },
-    { image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=1200", title: "Safety & Security Solutions", title_ar: "حلول السلامة والأمان", subtitle: "Protect What Matters Most" }
+    { image: "https://images.unsplash.com/photo-1707064892275-a3088e8240be?w=1200", title: "Quality Building Materials", subtitle: "Your Trusted Partner in Construction & Trading" },
+    { image: "https://images.unsplash.com/photo-1745449563046-f75d0bd28f46?w=1200", title: "Industrial Tools & Equipment", subtitle: "Professional Grade Tools for Every Project" },
+    { image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=1200", title: "Safety & Security Solutions", subtitle: "Protect What Matters Most" }
   ];
 
   const [heroSlides, setHeroSlides] = useState(defaultHeroSlides);
@@ -109,7 +109,6 @@ const HomePage = () => {
             <div className="absolute inset-0 flex items-center">
               <div className="container mx-auto px-4">
                 <div className={`max-w-2xl transition-all duration-700 delay-200 ${index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                  <p className="text-gold font-arabic text-base sm:text-lg md:text-xl mb-1 sm:mb-2" dir="rtl">{slide.title_ar || slide.titleAr}</p>
                   <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-2 sm:mb-4">{slide.title}</h1>
                   <p className="text-sm sm:text-base md:text-xl text-white/90 mb-4 sm:mb-8 line-clamp-2 sm:line-clamp-none">{slide.subtitle}</p>
                   <div className="flex flex-wrap gap-2 sm:gap-4">
@@ -190,7 +189,7 @@ const HomePage = () => {
       <section className="bg-white">
         <div className="w-full h-80 md:h-96 relative border-y border-gray-200">
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d115456.24156689539!2d55.267882250000004!3d25.101569749999997!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e5f43496ad9c645%3A0xbde66e5084295162!2sDubai%20-%20United%20Arab%20Emirates!5e0!3m2!1sen!2sae!4v1709477382949!5m2!1sen!2sae"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3607.411651588147!2d55.378902!3d25.290389!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e5f5db8111e695d%3A0xd71c8eff4b8ea811!2sGrand%20Palace%20General%20Trading%20LLC!5e0!3m2!1sen!2sae!4v1709477382949!5m2!1sen!2sae"
             width="100%"
             height="100%"
             style={{ border: 0 }}
@@ -208,7 +207,6 @@ const HomePage = () => {
         <div className="absolute inset-0 bg-navy" />
         <div className="absolute top-0 right-0 w-96 h-96 bg-gold/10 rounded-full blur-3xl" />
         <div className="container mx-auto px-4 relative z-10 text-center max-w-3xl">
-          <p className="text-gold font-arabic text-xl mb-2" dir="rtl">ابدأ مشروعك معنا اليوم</p>
           <h2 className="text-4xl font-bold text-white mb-6">Ready to Start Your Project?</h2>
           <p className="text-lg text-white/80 mb-10">Get in touch for personalized quotes and expert advice.</p>
           <div className="flex justify-center gap-4">
@@ -447,7 +445,7 @@ const CheckoutPage = () => {
         navigate(`/enquiry-confirmation/${res.data.enquiry_id}`);
       } else {
         // Normal order flow
-        const orderData = { items: cart.items.map(item => ({ product_id: item.product_id, quantity: item.quantity })), shipping_address: { full_name: formData.full_name, phone: formData.phone, address_line1: formData.address_line1, city: formData.city, emirate: formData.emirate }, payment_method: paymentMethod, notes: formData.notes };
+        const orderData = { items: cart.items.map(item => ({ product_id: item.product_id, quantity: item.quantity })), shipping_address: { full_name: formData.full_name, email: formData.email, phone: formData.phone, address_line1: formData.address_line1, city: formData.city, emirate: formData.emirate }, payment_method: paymentMethod, notes: formData.notes };
         const params = sessionId ? { session_id: sessionId } : {};
         const res = await axios.post(`${API}/orders`, orderData, { headers: getAuthHeaders(), params });
         if (res.data.requires_payment && paymentMethod === 'card') {
@@ -1018,7 +1016,7 @@ const ContactPage = () => {
             <Card className="overflow-hidden border-0 shadow-lg">
               <div className="h-80 w-full bg-gray-100 flex items-center justify-center relative">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d115456.24156689539!2d55.267882250000004!3d25.101569749999997!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e5f43496ad9c645%3A0xbde66e5084295162!2sDubai%20-%20United%20Arab%20Emirates!5e0!3m2!1sen!2sae!4v1709477382949!5m2!1sen!2sae"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3607.411651588147!2d55.378902!3d25.290389!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e5f5db8111e695d%3A0x82dbb277d079313!2sAl%20Sajaya%20Building!5e0!3m2!1sen!2sae!4v1709477382949!5m2!1sen!2sae"
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}
@@ -1034,7 +1032,7 @@ const ContactPage = () => {
                   <MapPin className="h-4 w-4 text-gold" />
                   <span className="font-semibold">Our Location</span>
                 </div>
-                <p className="text-sm text-gray-300">{settings.company_address || 'Dubai, United Arab Emirates'}</p>
+                <p className="text-sm text-gray-300">{settings.company_address || 'Shop No:3 Al Sajaya Building, Al Qusais 2, Damascus St.  244, Sector, Dubai, United Arab Emirates'}</p>
               </CardContent>
             </Card>
           </div>

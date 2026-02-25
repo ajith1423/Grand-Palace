@@ -187,7 +187,7 @@ export const AdminProducts = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortOption, setSortOption] = useState('newest');
   const [formData, setFormData] = useState({
-    name: '', description: '', price: '', offer_price: '', category_id: '', sku: '', stock: '', brand: '', images: '', is_active: true, is_featured: false,
+    name: '', description: '', price: '', offer_price: '', category_id: '', sku: '', stock: '', brand: '', images: '', is_active: true, is_featured: false, is_test: false,
     highlights: '', specifications: '', box_contents: '', faqs: ''
   });
 
@@ -271,7 +271,7 @@ export const AdminProducts = () => {
         toast.success('Product created');
       }
       setShowForm(false); setEditingProduct(null); fetchProducts();
-      setFormData({ name: '', description: '', price: '', offer_price: '', category_id: '', sku: '', stock: '', brand: '', images: '', is_active: true, is_featured: false, highlights: '', specifications: '', box_contents: '', faqs: '' });
+      setFormData({ name: '', description: '', price: '', offer_price: '', category_id: '', sku: '', stock: '', brand: '', images: '', is_active: true, is_featured: false, is_test: false, highlights: '', specifications: '', box_contents: '', faqs: '' });
     } catch (e) { toast.error(e.response?.data?.detail || 'Failed to save product'); }
   };
 
@@ -281,7 +281,7 @@ export const AdminProducts = () => {
       name: product.name, description: product.description, price: product.price?.toString(),
       offer_price: product.offer_price?.toString() || '', category_id: product.category_id,
       sku: product.sku, stock: product.stock?.toString(), brand: product.brand || '',
-      images: product.images?.join(',') || '', is_active: product.is_active, is_featured: product.is_featured,
+      images: product.images?.join(',') || '', is_active: product.is_active, is_featured: product.is_featured, is_test: product.is_test || false,
       highlights: product.highlights?.join('\n') || '',
       specifications: product.specifications ? Object.entries(product.specifications).map(([k, v]) => `${k}: ${v}`).join('\n') : '',
       box_contents: product.box_contents?.join('\n') || '',
@@ -372,7 +372,7 @@ export const AdminProducts = () => {
         <Badge variant="outline" className="flex items-center gap-1 h-10 px-4 text-sm">
           <Package className="h-4 w-4" />{filteredAndSortedProducts.length} product{filteredAndSortedProducts.length !== 1 ? 's' : ''}
         </Badge>
-        <Button onClick={() => { setEditingProduct(null); setFormData({ name: '', description: '', price: '', offer_price: '', category_id: '', sku: '', stock: '', brand: '', images: '', is_active: true, is_featured: false, highlights: '', specifications: '', box_contents: '', faqs: '' }); setShowForm(true); }} className="bg-gold text-navy-dark"><Plus className="h-4 w-4 mr-2" />Add Product</Button>
+        <Button onClick={() => { setEditingProduct(null); setFormData({ name: '', description: '', price: '', offer_price: '', category_id: '', sku: '', stock: '', brand: '', images: '', is_active: true, is_featured: false, is_test: false, highlights: '', specifications: '', box_contents: '', faqs: '' }); setShowForm(true); }} className="bg-gold text-navy-dark"><Plus className="h-4 w-4 mr-2" />Add Product</Button>
       </div>
 
       {showForm ? (
@@ -404,6 +404,7 @@ export const AdminProducts = () => {
                     <div className="flex items-center gap-6">
                       <div className="flex items-center gap-2"><Switch checked={formData.is_active} onCheckedChange={(v) => setFormData({ ...formData, is_active: v })} /><Label>Active</Label></div>
                       <div className="flex items-center gap-2"><Switch checked={formData.is_featured} onCheckedChange={(v) => setFormData({ ...formData, is_featured: v })} /><Label>Featured</Label></div>
+                      <div className="flex items-center gap-2"><Switch checked={formData.is_test} onCheckedChange={(v) => setFormData({ ...formData, is_test: v })} /><Label>Test</Label></div>
                     </div>
                   </div>
                 </TabsContent>

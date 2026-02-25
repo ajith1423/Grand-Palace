@@ -27,7 +27,6 @@ async def add_washbasin_product():
         new_cat = {
             "id": cat_id,
             "name": cat_name,
-            "name_ar": None,
             "description": "Elegant collection of Washbasins",
             "image": None,
             "icon": "Basin",
@@ -70,9 +69,7 @@ async def add_washbasin_product():
         product_doc = {
             "id": product_id,
             "name": "Wall Hung Basin",
-            "name_ar": None,
             "description": "Wall Hung Basin With Fixing Accessories, Size 600x440x155 mm",
-            "description_ar": None,
             "price": 850.00,  # Estimated price as none provided
             "offer_price": None,
             "category_id": cat_id,

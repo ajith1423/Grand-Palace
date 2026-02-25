@@ -202,7 +202,7 @@ const NavItemWithDropdown = ({ category, isActive, onMouseEnter, onMouseLeave, s
 };
 
 const Header = () => {
-  const { user, cart, logout, categories } = useApp();
+  const { user, cart, logout, categories, settings } = useApp();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
@@ -228,19 +228,19 @@ const Header = () => {
       <div className="bg-navy text-white py-1.5 sm:py-2">
         <div className="container mx-auto px-4 flex justify-between items-center text-xs sm:text-sm">
           <div className="flex items-center gap-3 sm:gap-6">
-            <a href="tel:+971545680916" className="flex items-center gap-1 sm:gap-1.5 hover:text-gold transition-colors">
-              <Phone className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> <span className="hidden sm:inline">+971 54 568 0916</span><span className="sm:hidden">Mobile</span>
+            <a href={`tel:${settings.company_mobile || '+971545680916'}`} className="flex items-center gap-1 sm:gap-1.5 hover:text-gold transition-colors">
+              <Phone className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> <span className="hidden sm:inline">{settings.company_mobile || '+971 54 568 0916'}</span><span className="sm:hidden">Mobile</span>
             </a>
-            <a href="tel:+97142727815" className="hidden lg:flex items-center gap-1 sm:gap-1.5 hover:text-gold transition-colors">
-              <Phone className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> <span>+971 4 272 7815</span>
+            <a href={`tel:${settings.company_phone || '+97142727815'}`} className="hidden lg:flex items-center gap-1 sm:gap-1.5 hover:text-gold transition-colors">
+              <Phone className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> <span>{settings.company_phone || '+971 4 272 7815'}</span>
             </a>
-            <a href="mailto:sales@gpgt.ae" className="hidden md:flex items-center gap-1.5 hover:text-gold transition-colors">
-              <Mail className="h-3.5 w-3.5" /> sales@gpgt.ae
+            <a href={`mailto:${settings.company_email || 'sales@gpgt.ae'}`} className="hidden md:flex items-center gap-1.5 hover:text-gold transition-colors">
+              <Mail className="h-3.5 w-3.5" /> {settings.company_email || 'sales@gpgt.ae'}
             </a>
           </div>
           <div className="hidden md:flex items-center gap-1.5">
             <MapPin className="h-3.5 w-3.5 text-gold" />
-            <span>Dubai, United Arab Emirates</span>
+            <span>{settings.company_address || 'Shop No:3 Al Sajaya Building, Al Qusais 2, Damascus St.  244, Sector, Dubai, United Arab Emirates'}</span>
           </div>
           <div className="flex items-center">
             <span className="text-gold text-xs sm:text-sm whitespace-nowrap">Free Delivery 500+</span>

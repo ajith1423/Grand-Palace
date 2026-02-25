@@ -47,7 +47,6 @@ async def migrate_products():
             new_cat = {
                 "id": cat_id,
                 "name": cat_name,
-                "name_ar": None,
                 "description": f"Quality {cat_name} collections",
                 "image": None,
                 "icon": cat_icons.get(cat_name, "Settings"),
@@ -67,9 +66,7 @@ async def migrate_products():
         product_doc = {
             "id": str(uuid.uuid4()),
             "name": item['name'],
-            "name_ar": None,
             "description": item['description'],
-            "description_ar": None,
             "price": 0.0, # Placeholder
             "offer_price": None,
             "category_id": cat_id,

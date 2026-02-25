@@ -31,9 +31,7 @@ const statusConfig = {
 const EnquiriesPage = () => {
     const { user, getAuthHeaders } = useApp();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('product');
-    const [productEnquiries, setProductEnquiries] = useState([]);
-    const [cartEnquiries, setCartEnquiries] = useState([]);
+    const [enquiries, setEnquiries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -42,7 +40,6 @@ const EnquiriesPage = () => {
     useEffect(() => {
         if (!user || user.role !== 'admin') { navigate('/login'); return; }
         fetchEnquiries();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, navigate]);
 
     const fetchEnquiries = async () => {
@@ -52,8 +49,16 @@ const EnquiriesPage = () => {
                 axios.get(`${API}/enquiries`, { headers: getAuthHeaders() }).catch(() => ({ data: [] })),
                 axios.get(`${API}/cart-enquiries`, { headers: getAuthHeaders() }).catch(() => ({ data: [] }))
             ]);
-            setProductEnquiries(Array.isArray(prodRes.data) ? prodRes.data : prodRes.data.enquiries || []);
-            setCartEnquiries(Array.isArray(cartRes.data) ? cartRes.data : cartRes.data.enquiries || []);
+
+            const prodData = Array.isArray(prodRes.data) ? prodRes.data : prodRes.data.enquiries || [];
+            const cartData = Array.isArray(cartRes.data) ? cartRes.data : cartRes.data.enquiries || [];
+
+            // Combine and sort by date descending
+            const combined = [...prodData, ...cartData].sort((a, b) =>
+                new Date(b.created_at) - new Date(a.created_at)
+            );
+
+            setEnquiries(combined);
         } catch (e) {
             toast.error('Failed to load enquiries');
         }
@@ -62,8 +67,8 @@ const EnquiriesPage = () => {
 
     const updateStatus = async (id, status, type = 'product') => {
         try {
-            const endpoint = type === 'product' ? 'enquiries' : 'cart-enquiries';
-            await axios.put(`${API}/${endpoint}/${id}/status?status=${status}`, {}, { headers: getAuthHeaders() });
+            const endpoint = type === 'product' || type === 'contact' ? 'enquiries' : 'cart-enquiries';
+            await axios.put(`${API}/${endpoint}/${id}?status=${status}`, {}, { headers: getAuthHeaders() });
             toast.success(`Enquiry marked as ${status}`);
             fetchEnquiries();
         } catch (e) {
@@ -71,23 +76,16 @@ const EnquiriesPage = () => {
         }
     };
 
-    const filterEnquiries = (enquiries) => {
-        return enquiries.filter(e => {
-            const matchesSearch = !search ||
-                (e.name || '').toLowerCase().includes(search.toLowerCase()) ||
-                (e.email || '').toLowerCase().includes(search.toLowerCase()) ||
-                (e.product_name || '').toLowerCase().includes(search.toLowerCase()) ||
-                (e.message || '').toLowerCase().includes(search.toLowerCase());
-            const matchesStatus = statusFilter === 'all' || e.status === statusFilter;
-            return matchesSearch && matchesStatus;
-        });
-    };
-
-    const filteredProductEnquiries = filterEnquiries(productEnquiries);
-    const filteredCartEnquiries = filterEnquiries(cartEnquiries);
-
-    const newProductCount = productEnquiries.filter(e => e.status === 'new' || e.status === 'pending').length;
-    const newCartCount = cartEnquiries.filter(e => e.status === 'new' || e.status === 'pending').length;
+    const filteredEnquiries = enquiries.filter(e => {
+        const matchesSearch = !search ||
+            (e.name || e.customer_name || '').toLowerCase().includes(search.toLowerCase()) ||
+            (e.email || e.customer_email || '').toLowerCase().includes(search.toLowerCase()) ||
+            (e.product_name || '').toLowerCase().includes(search.toLowerCase()) ||
+            (e.message || '').toLowerCase().includes(search.toLowerCase()) ||
+            (e.subject || '').toLowerCase().includes(search.toLowerCase());
+        const matchesStatus = statusFilter === 'all' || e.status === statusFilter;
+        return matchesSearch && matchesStatus;
+    });
 
     if (loading) {
         return (
@@ -99,9 +97,10 @@ const EnquiriesPage = () => {
         );
     }
 
-    const renderEnquiryCard = (enquiry, type) => {
+    const renderEnquiryCard = (enquiry) => {
         const config = statusConfig[enquiry.status] || statusConfig.new;
         const StatusIcon = config.icon;
+        const type = (enquiry.items || enquiry.cart_items) ? 'cart' : (enquiry.type === 'contact' ? 'contact' : 'product');
 
         return (
             <Card key={enquiry.id} className="hover:shadow-md transition-shadow group">
@@ -111,6 +110,9 @@ const EnquiriesPage = () => {
                             <div className="flex items-center gap-2 mb-2">
                                 <Badge className={cn('text-xs', config.color)}>
                                     <StatusIcon className="h-3 w-3 mr-1" />{config.label}
+                                </Badge>
+                                <Badge variant="outline" className="text-[10px] uppercase">
+                                    {type}
                                 </Badge>
                                 <span className="text-xs text-muted-foreground">
                                     {enquiry.created_at ? new Date(enquiry.created_at).toLocaleDateString('en-AE', {
@@ -123,26 +125,26 @@ const EnquiriesPage = () => {
                             <div className="flex items-center gap-4 mb-2">
                                 <div className="flex items-center gap-1.5 text-sm font-medium text-navy">
                                     <User className="h-3.5 w-3.5 text-gray-400" />
-                                    {enquiry.name || 'Unknown'}
+                                    {enquiry.name || enquiry.customer_name || 'Unknown'}
                                 </div>
-                                {enquiry.email && (
+                                {(enquiry.email || enquiry.customer_email) && (
                                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                        <Mail className="h-3 w-3" />{enquiry.email}
+                                        <Mail className="h-3 w-3" />{enquiry.email || enquiry.customer_email}
                                     </div>
                                 )}
-                                {enquiry.phone && (
+                                {(enquiry.phone || enquiry.customer_phone) && (
                                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                        <Phone className="h-3 w-3" />{enquiry.phone}
+                                        <Phone className="h-3 w-3" />{enquiry.phone || enquiry.customer_phone}
                                     </div>
                                 )}
                             </div>
 
-                            {/* Product/Cart Info */}
-                            {enquiry.type === 'contact' ? (
+                            {/* Content */}
+                            {type === 'contact' || enquiry.type === 'contact' ? (
                                 <div className="mb-2 p-2 bg-gray-50 rounded-lg">
                                     <div className="flex items-center gap-2 text-sm font-medium mb-1">
                                         <Mail className="h-4 w-4 text-gold" />
-                                        Subject: {enquiry.subject}
+                                        Subject: {enquiry.subject || 'General Inquiry'}
                                     </div>
                                     <p className="text-sm text-gray-600 line-clamp-3">"{enquiry.message}"</p>
                                 </div>
@@ -151,48 +153,40 @@ const EnquiriesPage = () => {
                                     <Package className="h-4 w-4 text-gold" />
                                     <span className="text-sm font-medium">{enquiry.product_name}</span>
                                     {enquiry.quantity && <Badge variant="outline" className="text-xs">Qty: {enquiry.quantity}</Badge>}
+                                    {enquiry.message && <p className="text-xs text-gray-500 mt-1 block">"{enquiry.message}"</p>}
                                 </div>
-                            ) : type === 'cart' && enquiry.items && (
+                            ) : type === 'cart' && (enquiry.items || enquiry.cart_items) && (
                                 <div className="mb-2 p-2 bg-gray-50 rounded-lg">
                                     <div className="flex items-center gap-2 text-sm font-medium mb-1">
                                         <ShoppingCart className="h-4 w-4 text-gold" />
-                                        {enquiry.items.length} item(s) in cart
+                                        {(enquiry.items || enquiry.cart_items).length} item(s) in request
                                     </div>
                                     <div className="text-xs text-muted-foreground">
-                                        {enquiry.items.slice(0, 3).map((item, i) => (
-                                            <span key={i}>{item.product_name || item.name} ×{item.quantity}{i < Math.min(enquiry.items.length, 3) - 1 ? ', ' : ''}</span>
+                                        {(enquiry.items || enquiry.cart_items).slice(0, 3).map((item, i) => (
+                                            <span key={i}>{item.product_name || item.name} ×{item.quantity}{i < Math.min((enquiry.items || enquiry.cart_items).length, 3) - 1 ? ', ' : ''}</span>
                                         ))}
-                                        {enquiry.items.length > 3 && <span> +{enquiry.items.length - 3} more</span>}
+                                        {(enquiry.items || enquiry.cart_items).length > 3 && <span> +{(enquiry.items || enquiry.cart_items).length - 3} more</span>}
                                     </div>
                                 </div>
                             )}
-
-                            {/* Old Message block (kept for old product enquiries without type) */}
-                            {enquiry.message && enquiry.type !== 'contact' && (
-                                <p className="text-sm text-gray-600 line-clamp-2 italic">"{enquiry.message}"</p>
-                            )}
                         </div>
 
-                        {/* Actions */}
+                        {/* Actions - Simplified Status Toggle */}
                         <div className="flex flex-col gap-1">
-                            {(enquiry.status === 'new' || enquiry.status === 'pending') && (
-                                <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white text-xs h-7"
-                                    onClick={() => updateStatus(enquiry.id, 'responded', type)}>
-                                    <CheckCircle className="h-3 w-3 mr-1" />Respond
-                                </Button>
-                            )}
-                            {enquiry.status === 'responded' && (
-                                <Button size="sm" variant="outline" className="text-xs h-7"
-                                    onClick={() => updateStatus(enquiry.id, 'closed', type)}>
-                                    <XCircle className="h-3 w-3 mr-1" />Close
-                                </Button>
-                            )}
-                            {enquiry.status === 'closed' && (
-                                <Button size="sm" variant="ghost" className="text-xs h-7 text-muted-foreground"
-                                    onClick={() => updateStatus(enquiry.id, 'new', type)}>
-                                    Reopen
-                                </Button>
-                            )}
+                            <Select
+                                value={enquiry.status}
+                                onValueChange={(val) => updateStatus(enquiry.id, val, type)}
+                            >
+                                <SelectTrigger className="h-7 text-[10px] w-24">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="new">New</SelectItem>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="responded">Responded</SelectItem>
+                                    <SelectItem value="closed">Closed</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
                 </CardContent>
@@ -200,49 +194,37 @@ const EnquiriesPage = () => {
         );
     };
 
-    const renderEmptyState = (type) => (
-        <div className="text-center py-16">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Inbox className="h-10 w-10 text-gray-300" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-500 mb-2">
-                No {type === 'product' ? 'product' : 'cart'} enquiries
-            </h3>
-            <p className="text-sm text-gray-400 max-w-md mx-auto">
-                {search || statusFilter !== 'all'
-                    ? 'Try adjusting your filters to see more results.'
-                    : `When customers submit ${type} enquiries, they'll appear here.`}
-            </p>
-        </div>
-    );
-
     return (
-        <AdminLayout title="Enquiries" subtitle="Manage customer enquiries and quote requests">
+        <AdminLayout title="Enquiries" subtitle="Manage customer enquiries and requests">
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-0">
                     <CardContent className="p-4">
-                        <p className="text-sm text-gray-600">Product Enquiries</p>
-                        <p className="text-2xl font-bold text-blue-600">{productEnquiries.length}</p>
+                        <p className="text-sm text-gray-600">Total Enquiries</p>
+                        <p className="text-2xl font-bold text-blue-600">{enquiries.length}</p>
                     </CardContent>
                 </Card>
                 <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-0">
                     <CardContent className="p-4">
-                        <p className="text-sm text-gray-600">Cart Enquiries</p>
-                        <p className="text-2xl font-bold text-amber-600">{cartEnquiries.length}</p>
-                    </CardContent>
-                </Card>
-                <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-0">
-                    <CardContent className="p-4">
                         <p className="text-sm text-gray-600">Awaiting Response</p>
-                        <p className="text-2xl font-bold text-orange-600">{newProductCount + newCartCount}</p>
+                        <p className="text-2xl font-bold text-amber-600">
+                            {enquiries.filter(e => e.status === 'new' || e.status === 'pending').length}
+                        </p>
                     </CardContent>
                 </Card>
                 <Card className="bg-gradient-to-br from-green-50 to-green-100 border-0">
                     <CardContent className="p-4">
                         <p className="text-sm text-gray-600">Responded</p>
                         <p className="text-2xl font-bold text-green-600">
-                            {[...productEnquiries, ...cartEnquiries].filter(e => e.status === 'responded').length}
+                            {enquiries.filter(e => e.status === 'responded').length}
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-0">
+                    <CardContent className="p-4">
+                        <p className="text-sm text-gray-600">Closed</p>
+                        <p className="text-2xl font-bold text-gray-600">
+                            {enquiries.filter(e => e.status === 'closed').length}
                         </p>
                     </CardContent>
                 </Card>
@@ -253,7 +235,7 @@ const EnquiriesPage = () => {
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search by name, email, product..."
+                        placeholder="Search by name, email, message..."
                         className="pl-9"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
@@ -272,40 +254,26 @@ const EnquiriesPage = () => {
                         <SelectItem value="closed">Closed</SelectItem>
                     </SelectContent>
                 </Select>
-                <Button variant="outline" onClick={fetchEnquiries}>
+                <Button variant="outline" onClick={fetchEnquiries} className="h-10">
                     <RefreshCw className="h-4 w-4 mr-2" />Refresh
                 </Button>
             </div>
 
-            {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="mb-4">
-                    <TabsTrigger value="product" className="gap-2">
-                        <MessageSquare className="h-4 w-4" />
-                        Product Enquiries
-                        {newProductCount > 0 && <Badge className="bg-red-500 text-white text-[10px] h-5 ml-1">{newProductCount}</Badge>}
-                    </TabsTrigger>
-                    <TabsTrigger value="cart" className="gap-2">
-                        <ShoppingCart className="h-4 w-4" />
-                        Cart Enquiries
-                        {newCartCount > 0 && <Badge className="bg-red-500 text-white text-[10px] h-5 ml-1">{newCartCount}</Badge>}
-                    </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="product">
-                    <div className="space-y-3">
-                        {filteredProductEnquiries.length === 0 ? renderEmptyState('product') :
-                            filteredProductEnquiries.map(e => renderEnquiryCard(e, 'product'))}
+            <div className="space-y-3">
+                {filteredEnquiries.length === 0 ? (
+                    <div className="text-center py-16">
+                        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Inbox className="h-10 w-10 text-gray-300" />
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-500 mb-2">No enquiries found</h3>
+                        <p className="text-sm text-gray-400 max-w-md mx-auto">
+                            Customer enquiries and requests will appear here once submitted.
+                        </p>
                     </div>
-                </TabsContent>
-
-                <TabsContent value="cart">
-                    <div className="space-y-3">
-                        {filteredCartEnquiries.length === 0 ? renderEmptyState('cart') :
-                            filteredCartEnquiries.map(e => renderEnquiryCard(e, 'cart'))}
-                    </div>
-                </TabsContent>
-            </Tabs>
+                ) : (
+                    filteredEnquiries.map(enquiry => renderEnquiryCard(enquiry))
+                )}
+            </div>
         </AdminLayout>
     );
 };

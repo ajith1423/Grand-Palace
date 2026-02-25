@@ -131,6 +131,7 @@ class UserResponse(BaseModel):
 
 class AddressModel(BaseModel):
     full_name: str
+    email: str
     phone: str
     address_line1: str
     address_line2: Optional[str] = None
@@ -141,9 +142,7 @@ class AddressModel(BaseModel):
 
 class ProductCreate(BaseModel):
     name: str
-    name_ar: Optional[str] = None
     description: str
-    description_ar: Optional[str] = None
     price: float
     offer_price: Optional[float] = None
     category_id: str
@@ -157,12 +156,11 @@ class ProductCreate(BaseModel):
     faqs: Optional[List[Dict[str, str]]] = []
     is_active: bool = True
     is_featured: bool = False
+    is_test: bool = False
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
-    name_ar: Optional[str] = None
     description: Optional[str] = None
-    description_ar: Optional[str] = None
     price: Optional[float] = None
     offer_price: Optional[float] = None
     category_id: Optional[str] = None
@@ -176,10 +174,10 @@ class ProductUpdate(BaseModel):
     faqs: Optional[List[Dict[str, str]]] = None
     is_active: Optional[bool] = None
     is_featured: Optional[bool] = None
+    is_test: Optional[bool] = None
 
 class CategoryCreate(BaseModel):
     name: str
-    name_ar: Optional[str] = None
     description: Optional[str] = None
     image: Optional[str] = None
     icon: Optional[str] = None
@@ -401,11 +399,11 @@ async def get_settings():
         "flat_shipping_rate": 25.0,
         "free_shipping_threshold": 500.0,
         "company_name": "Grand Palace General Trading",
-        "company_address": "Dubai, UAE",
-        "company_phone": "+971 4 456 7890",
-        "company_email": "info@gpgt.ae",
-        "company_trn": "TRN123456789",
-        "whatsapp_number": "+971 4 456 7890",
+        "company_address": "Shop No:3 Al Sajaya Building, Al Qusais 2, Damascus St.  244, Sector, Dubai, United Arab Emirates",
+        "company_phone": "+971 4 272 7815",
+        "company_mobile": "+971 54 568 0916",
+        "company_email": "sales@gpgt.ae",
+        "whatsapp_number": "+971 54 568 0916",
         "delivery_emirates": ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Umm Al Quwain", "Ras Al Khaimah", "Fujairah"],
         "admin_notification_email": "ajith@lenokinfotech",
         # Firebase settings
@@ -417,9 +415,9 @@ async def get_settings():
         "show_prices": True,
         # Hero slides for homepage banner
         "hero_slides": [
-            {"image": "https://images.unsplash.com/photo-1707064892275-a3088e8240be?w=1200", "title": "Quality Building Materials", "title_ar": "مواد بناء عالية الجودة", "subtitle": "Your Trusted Partner in Construction & Trading"},
-            {"image": "https://images.unsplash.com/photo-1745449563046-f75d0bd28f46?w=1200", "title": "Industrial Tools & Equipment", "title_ar": "أدوات ومعدات صناعية", "subtitle": "Professional Grade Tools for Every Project"},
-            {"image": "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=1200", "title": "Safety & Security Solutions", "title_ar": "حلول السلامة والأمان", "subtitle": "Protect What Matters Most"}
+            {"image": "https://images.unsplash.com/photo-1707064892275-a3088e8240be?w=1200", "title": "Quality Building Materials", "subtitle": "Your Trusted Partner in Construction & Trading"},
+            {"image": "https://images.unsplash.com/photo-1745449563046-f75d0bd28f46?w=1200", "title": "Industrial Tools & Equipment", "subtitle": "Professional Grade Tools for Every Project"},
+            {"image": "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=1200", "title": "Safety & Security Solutions", "subtitle": "Protect What Matters Most"}
         ]
     }
     
@@ -1375,7 +1373,7 @@ async def get_products(
     page: int = 1,
     limit: int = 20
 ):
-    query = {"is_active": True}
+    query = {"is_active": True, "is_test": {"$ne": True}}
     
     if category_id:
         # Check if this is a parent category - if so, include all child categories
@@ -1784,6 +1782,40 @@ async def submit_product_enquiry(enquiry: ProductEnquiry):
             )
             sg = SendGridAPIClient(SENDGRID_API_KEY)
             sg.send(message)
+            
+            # Send confirmation to customer
+            customer_html = f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2a4a70 100%); padding: 20px; text-align: center;">
+                    <h1 style="color: #d4af37; margin: 0;">Enquiry Received</h1>
+                </div>
+                <div style="padding: 20px;">
+                    <p>Dear {enquiry.customer_name},</p>
+                    <p>Thank you for your enquiry. We have received your request for <strong>{product.get('name')}</strong> and our team will contact you shortly with a quotation.</p>
+                    
+                    <h3 style="color: #1e3a5f; border-bottom: 2px solid #d4af37; padding-bottom: 5px;">Enquiry Summary</h3>
+                    <table style="width: 100%; margin-bottom: 20px;">
+                        <tr><td><strong>Product:</strong></td><td>{product.get('name')}</td></tr>
+                        <tr><td><strong>Quantity:</strong></td><td>{enquiry.quantity}</td></tr>
+                    </table>
+                    
+                    <p>If you have any urgent questions, please feel free to contact us.</p>
+                    <p>Best Regards,<br>Grand Palace General Trading Team</p>
+                </div>
+                <div style="background: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #666;">
+                    <p>© 2025 Grand Palace General Trading. All rights reserved.</p>
+                </div>
+            </body>
+            </html>
+            """
+            customer_message = Mail(
+                from_email=FROM_EMAIL,
+                to_emails=enquiry.customer_email,
+                subject=f"Enquiry Confirmation: {product.get('name')}",
+                html_content=customer_html
+            )
+            sg.send(customer_message)
         except Exception as e:
             logger.error(f"Failed to send enquiry email: {e}")
     
@@ -1867,6 +1899,32 @@ async def submit_contact_enquiry(enquiry: ContactEnquiry):
             )
             sg = SendGridAPIClient(SENDGRID_API_KEY)
             sg.send(message)
+            
+            # Send confirmation to customer
+            customer_html = f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2a4a70 100%); padding: 20px; text-align: center;">
+                    <h1 style="color: #d4af37; margin: 0;">Message Received</h1>
+                </div>
+                <div style="padding: 20px;">
+                    <p>Dear {enquiry.name},</p>
+                    <p>Thank you for contacting Grand Palace General Trading. We have received your message regarding "<strong>{enquiry.subject}</strong>" and our team will get back to you as soon as possible.</p>
+                    <p>Best Regards,<br>Grand Palace General Trading Team</p>
+                </div>
+                <div style="background: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #666;">
+                    <p>© 2025 Grand Palace General Trading. All rights reserved.</p>
+                </div>
+            </body>
+            </html>
+            """
+            customer_message = Mail(
+                from_email=FROM_EMAIL,
+                to_emails=enquiry.email,
+                subject=f"Thank you for contacting Grand Palace General Trading",
+                html_content=customer_html
+            )
+            sg.send(customer_message)
         except Exception as e:
             logger.error(f"Failed to send contact email: {e}")
     
@@ -2014,6 +2072,47 @@ async def submit_cart_enquiry(enquiry: CartEnquiryRequest, user: dict = Depends(
             )
             sg = SendGridAPIClient(SENDGRID_API_KEY)
             sg.send(message)
+            
+            # Send confirmation to customer
+            customer_html = f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2a4a70 100%); padding: 20px; text-align: center;">
+                    <h1 style="color: #d4af37; margin: 0;">Enquiry Received</h1>
+                    <p style="color: #fff; margin: 5px 0;">Enquiry #{enquiry_number}</p>
+                </div>
+                <div style="padding: 20px;">
+                    <p>Dear {enquiry.customer.name},</p>
+                    <p>Thank you for your enquiry. We have received your request for <strong>{len(enquiry.items)} item(s)</strong> and our team will contact you shortly with a quotation.</p>
+                    
+                    <h3 style="color: #1e3a5f; border-bottom: 2px solid #d4af37; padding-bottom: 5px;">Enquiry Summary</h3>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                        <thead>
+                            <tr style="background: #f5f5f5;">
+                                <th style="padding: 10px; text-align: left;">Product</th>
+                                <th style="padding: 10px; text-align: center;">Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {"".join([f'<tr><td style="padding: 10px; border-bottom: 1px solid #eee;">{item.product_name}</td><td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">{item.quantity}</td></tr>' for item in enquiry.items])}
+                        </tbody>
+                    </table>
+                    
+                    <p>Best Regards,<br>Grand Palace General Trading Team</p>
+                </div>
+                <div style="background: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #666;">
+                    <p>© 2025 Grand Palace General Trading. All rights reserved.</p>
+                </div>
+            </body>
+            </html>
+            """
+            customer_message = Mail(
+                from_email=SENDER_EMAIL,
+                to_emails=enquiry.customer.email,
+                subject=f"Enquiry Confirmation #{enquiry_number}",
+                html_content=customer_html
+            )
+            sg.send(customer_message)
         except Exception as e:
             logger.error(f"Failed to send cart enquiry email: {e}")
     
@@ -2188,7 +2287,7 @@ async def create_order(order: OrderCreate, background_tasks: BackgroundTasks, us
         "order_number": order_number,
         "invoice_number": invoice_number,
         "user_id": user["id"] if user else None,
-        "customer_email": user["email"] if user else order.shipping_address.full_name,
+        "customer_email": user["email"] if user else order.shipping_address.email,
         "items": items_data,
         "shipping_address": order.shipping_address.model_dump(),
         "billing_address": order.billing_address.model_dump() if order.billing_address else order.shipping_address.model_dump(),
@@ -2205,7 +2304,13 @@ async def create_order(order: OrderCreate, background_tasks: BackgroundTasks, us
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
     
-    await db.orders.insert_one(order_doc)
+    print(f"DEBUG: Inserting order {order_number} into collection {db.orders.name} in DB {db.name}")
+    try:
+        result = await db.orders.insert_one(order_doc)
+        print(f"DEBUG: Inserted order. Result ID: {result.inserted_id}")
+    except Exception as e:
+        print(f"DEBUG: FAILED TO INSERT ORDER: {e}")
+        raise e
     
     # Update stock
     for item in order.items:
@@ -2224,8 +2329,7 @@ async def create_order(order: OrderCreate, background_tasks: BackgroundTasks, us
         
         # Send email notification
         background_tasks.add_task(send_order_email, order_doc, to_admin=True)
-        if user:
-            background_tasks.add_task(send_order_email, order_doc, to_admin=False)
+        background_tasks.add_task(send_order_email, order_doc, to_admin=False)
     
     # Create notification for new order
     customer_name = order.shipping_address.full_name
@@ -2481,8 +2585,8 @@ async def update_hero_slides(data: dict, admin: dict = Depends(require_admin)):
 
 @api_router.get("/dashboard/stats")
 async def get_dashboard_stats(admin: dict = Depends(require_admin)):
-    total_products = await db.products.count_documents({})
-    active_products = await db.products.count_documents({"is_active": True})
+    total_products = await db.products.count_documents({"is_test": {"$ne": True}})
+    active_products = await db.products.count_documents({"is_active": True, "is_test": {"$ne": True}})
     total_orders = await db.orders.count_documents({})
     pending_orders = await db.orders.count_documents({"status": "pending"})
     total_customers = await db.users.count_documents({"role": "customer"})
@@ -2644,15 +2748,18 @@ async def get_erp_dashboard_kpis(admin: dict = Depends(require_admin)):
     unpaid_amount = unpaid_result[0]["total"] if unpaid_result else 0
     
     # Product KPIs
-    total_products = await db.products.count_documents({})
+    total_products = await db.products.count_documents({"is_test": {"$ne": True}})
     low_stock_products = await db.products.count_documents({
-        "$expr": {"$lte": ["$stock", {"$ifNull": ["$reorder_level", 10]}]}
+        "$and": [
+            {"is_test": {"$ne": True}},
+            {"$expr": {"$lte": ["$stock", {"$ifNull": ["$reorder_level", 10]}]}}
+        ]
     })
-    out_of_stock_products = await db.products.count_documents({"stock": {"$lte": 0}})
+    out_of_stock_products = await db.products.count_documents({"stock": {"$lte": 0}, "is_test": {"$ne": True}})
     
     # Total Stock Value (cost_price * stock)
     stock_value_pipeline = [
-        {"$match": {"is_active": True}},
+        {"$match": {"is_active": True, "is_test": {"$ne": True}}},
         {"$group": {
             "_id": None, 
             "total": {"$sum": {"$multiply": [
@@ -3002,7 +3109,7 @@ async def generate_erp_invoice_pdf(invoice: dict, settings: dict) -> bytes:
     
     # Company Info
     company_name = settings.get('company_name', 'Grand Palace General Trading')
-    company_address = settings.get('company_address', 'Dubai, UAE')
+    company_address = settings.get('company_address', 'Shop No:3 Al Sajaya Building, Al Qusais 2, Damascus St.  244, Sector, Dubai, United Arab Emirates')
     company_phone = settings.get('company_phone', '+971 4 456 7890')
     company_email = settings.get('company_email', 'info@gpgt.ae')
     company_trn = settings.get('company_trn', '') or settings.get('vat_trn', '')
@@ -3531,10 +3638,12 @@ async def generate_report(data: ReportRequest, admin: dict = Depends(require_adm
                     "total_spent": round(item["total_spent"], 2)
                 })
                 
-    elif data.report_type == "stock":
         # Low stock report
         products = await db.products.find(
-            {"$expr": {"$lte": ["$stock", {"$ifNull": ["$reorder_level", 10]}]}},
+            {"$and": [
+                {"is_test": {"$ne": True}},
+                {"$expr": {"$lte": ["$stock", {"$ifNull": ["$reorder_level", 10]}]}}
+            ]},
             {"_id": 0}
         ).sort("stock", 1).to_list(100)
         report_data = [
@@ -3696,7 +3805,10 @@ async def update_product_erp_fields(product_id: str, data: ProductERPUpdate, adm
 async def get_low_stock_products(admin: dict = Depends(require_admin)):
     """Get products with low stock"""
     products = await db.products.find(
-        {"$expr": {"$lte": ["$stock", {"$ifNull": ["$reorder_level", 10]}]}},
+        {"$and": [
+            {"is_test": {"$ne": True}},
+            {"$expr": {"$lte": ["$stock", {"$ifNull": ["$reorder_level", 10]}]}}
+        ]},
         {"_id": 0}
     ).sort("stock", 1).to_list(100)
     
@@ -3732,14 +3844,14 @@ async def seed_data():
     
     # Create categories
     categories = [
-        {"id": str(uuid.uuid4()), "name": "Sanitaryware", "name_ar": "أدوات صحية", "icon": "Droplets", "image": "https://images.unsplash.com/photo-1580810734898-5e1753f23337?w=400", "product_count": 0, "is_active": True},
-        {"id": str(uuid.uuid4()), "name": "Electrical", "name_ar": "كهربائية", "icon": "Zap", "image": "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=400", "product_count": 0, "is_active": True},
-        {"id": str(uuid.uuid4()), "name": "Lightings", "name_ar": "إضاءة", "icon": "Lightbulb", "image": "https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=400", "product_count": 0, "is_active": True},
-        {"id": str(uuid.uuid4()), "name": "Safety", "name_ar": "السلامة", "icon": "Shield", "image": "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400", "product_count": 0, "is_active": True},
-        {"id": str(uuid.uuid4()), "name": "Tools", "name_ar": "أدوات", "icon": "Wrench", "image": "https://images.unsplash.com/photo-1745449563046-f75d0bd28f46?w=400", "product_count": 0, "is_active": True},
-        {"id": str(uuid.uuid4()), "name": "Plumbing", "name_ar": "سباكة", "icon": "Pipette", "image": "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=400", "product_count": 0, "is_active": True},
-        {"id": str(uuid.uuid4()), "name": "Paints", "name_ar": "دهانات", "icon": "Paintbrush", "image": "https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=400", "product_count": 0, "is_active": True},
-        {"id": str(uuid.uuid4()), "name": "Hardware", "name_ar": "أجهزة", "icon": "Hammer", "image": "https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?w=400", "product_count": 0, "is_active": True},
+        {"id": str(uuid.uuid4()), "name": "Sanitaryware", "icon": "Droplets", "image": "https://images.unsplash.com/photo-1580810734898-5e1753f23337?w=400", "product_count": 0, "is_active": True},
+        {"id": str(uuid.uuid4()), "name": "Electrical", "icon": "Zap", "image": "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=400", "product_count": 0, "is_active": True},
+        {"id": str(uuid.uuid4()), "name": "Lightings", "icon": "Lightbulb", "image": "https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=400", "product_count": 0, "is_active": True},
+        {"id": str(uuid.uuid4()), "name": "Safety", "icon": "Shield", "image": "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400", "product_count": 0, "is_active": True},
+        {"id": str(uuid.uuid4()), "name": "Tools", "icon": "Wrench", "image": "https://images.unsplash.com/photo-1745449563046-f75d0bd28f46?w=400", "product_count": 0, "is_active": True},
+        {"id": str(uuid.uuid4()), "name": "Plumbing", "icon": "Pipette", "image": "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=400", "product_count": 0, "is_active": True},
+        {"id": str(uuid.uuid4()), "name": "Paints", "icon": "Paintbrush", "image": "https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=400", "product_count": 0, "is_active": True},
+        {"id": str(uuid.uuid4()), "name": "Hardware", "icon": "Hammer", "image": "https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?w=400", "product_count": 0, "is_active": True},
     ]
     
     for cat in categories:
@@ -3748,14 +3860,14 @@ async def seed_data():
     
     # Create sample products
     products = [
-        {"name": "Premium Toilet Set", "name_ar": "مجموعة مراحيض فاخرة", "description": "High-quality ceramic toilet set with soft-close seat", "price": 1299.00, "offer_price": 999.00, "category_id": categories[0]["id"], "sku": "SAN-001", "stock": 50, "images": ["https://images.unsplash.com/photo-1585412727339-54e4bae3bbf9?w=400"], "brand": "Grohe", "is_active": True, "is_featured": True},
-        {"name": "Electric Wire 2.5mm", "name_ar": "سلك كهربائي 2.5 مم", "description": "High-quality copper wire for electrical installations", "price": 89.00, "category_id": categories[1]["id"], "sku": "ELE-001", "stock": 200, "images": ["https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=400"], "brand": "Philips", "is_active": True, "is_featured": False},
-        {"name": "LED Panel Light 60W", "name_ar": "لوحة إضاءة LED 60 واط", "description": "Energy-efficient LED panel light for commercial use", "price": 149.00, "offer_price": 119.00, "category_id": categories[2]["id"], "sku": "LIG-001", "stock": 100, "images": ["https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=400"], "brand": "Philips", "is_active": True, "is_featured": True},
-        {"name": "Safety Helmet", "name_ar": "خوذة أمان", "description": "Industrial safety helmet with adjustable strap", "price": 45.00, "category_id": categories[3]["id"], "sku": "SAF-001", "stock": 300, "images": ["https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400"], "brand": "3M", "is_active": True, "is_featured": False},
-        {"name": "DeWalt Power Drill", "name_ar": "مثقاب ديوالت", "description": "Professional cordless power drill with battery", "price": 599.00, "offer_price": 499.00, "category_id": categories[4]["id"], "sku": "TOO-001", "stock": 75, "images": ["https://images.unsplash.com/photo-1745449563046-f75d0bd28f46?w=400"], "brand": "DeWalt", "is_active": True, "is_featured": True},
-        {"name": "PVC Pipe 4 inch", "name_ar": "أنبوب PVC 4 بوصة", "description": "Durable PVC pipe for plumbing installations", "price": 35.00, "category_id": categories[5]["id"], "sku": "PLU-001", "stock": 500, "images": ["https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=400"], "brand": "Wavin", "is_active": True, "is_featured": False},
-        {"name": "Interior Wall Paint", "name_ar": "طلاء حائط داخلي", "description": "Premium interior wall paint, 20L bucket", "price": 189.00, "category_id": categories[6]["id"], "sku": "PAI-001", "stock": 150, "images": ["https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=400"], "brand": "Jotun", "is_active": True, "is_featured": True},
-        {"name": "Door Lock Set", "name_ar": "مجموعة قفل الباب", "description": "High-security door lock set with keys", "price": 129.00, "offer_price": 99.00, "category_id": categories[7]["id"], "sku": "HAR-001", "stock": 200, "images": ["https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?w=400"], "brand": "Yale", "is_active": True, "is_featured": False},
+        {"name": "Premium Toilet Set", "description": "High-quality ceramic toilet set with soft-close seat", "price": 1299.00, "offer_price": 999.00, "category_id": categories[0]["id"], "sku": "SAN-001", "stock": 50, "images": ["https://images.unsplash.com/photo-1585412727339-54e4bae3bbf9?w=400"], "brand": "Grohe", "is_active": True, "is_featured": True},
+        {"name": "Electric Wire 2.5mm", "description": "High-quality copper wire for electrical installations", "price": 89.00, "category_id": categories[1]["id"], "sku": "ELE-001", "stock": 200, "images": ["https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=400"], "brand": "Philips", "is_active": True, "is_featured": False},
+        {"name": "LED Panel Light 60W", "description": "Energy-efficient LED panel light for commercial use", "price": 149.00, "offer_price": 119.00, "category_id": categories[2]["id"], "sku": "LIG-001", "stock": 100, "images": ["https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=400"], "brand": "Philips", "is_active": True, "is_featured": True},
+        {"name": "Safety Helmet", "description": "Industrial safety helmet with adjustable strap", "price": 45.00, "category_id": categories[3]["id"], "sku": "SAF-001", "stock": 300, "images": ["https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400"], "brand": "3M", "is_active": True, "is_featured": False},
+        {"name": "DeWalt Power Drill", "description": "Professional cordless power drill with battery", "price": 599.00, "offer_price": 499.00, "category_id": categories[4]["id"], "sku": "TOO-001", "stock": 75, "images": ["https://images.unsplash.com/photo-1745449563046-f75d0bd28f46?w=400"], "brand": "DeWalt", "is_active": True, "is_featured": True},
+        {"name": "PVC Pipe 4 inch", "description": "Durable PVC pipe for plumbing installations", "price": 35.00, "category_id": categories[5]["id"], "sku": "PLU-001", "stock": 500, "images": ["https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=400"], "brand": "Wavin", "is_active": True, "is_featured": False},
+        {"name": "Interior Wall Paint", "description": "Premium interior wall paint, 20L bucket", "price": 189.00, "category_id": categories[6]["id"], "sku": "PAI-001", "stock": 150, "images": ["https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=400"], "brand": "Jotun", "is_active": True, "is_featured": True},
+        {"name": "Door Lock Set", "description": "High-security door lock set with keys", "price": 129.00, "offer_price": 99.00, "category_id": categories[7]["id"], "sku": "HAR-001", "stock": 200, "images": ["https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?w=400"], "brand": "Yale", "is_active": True, "is_featured": False},
     ]
     
     for prod in products:

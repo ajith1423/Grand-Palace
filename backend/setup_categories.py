@@ -92,7 +92,6 @@ async def main():
             main_doc = {
                 "id": main_id,
                 "name": main_cat_name,
-                "name_ar": None,
                 "description": f"{main_cat_name} products and supplies",
                 "image": None,
                 "icon": None,
@@ -141,7 +140,6 @@ async def main():
                 sub_doc = {
                     "id": sub_id,
                     "name": sub_name,
-                    "name_ar": None,
                     "description": f"{sub_name} - {main_cat_name}",
                     "image": None,
                     "icon": None,

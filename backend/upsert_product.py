@@ -53,9 +53,7 @@ async def create_product():
         product_doc = {
             "id": product_id,
             "name": "Automatic Rimless Floor Mounted WC",
-            "name_ar": None,
             "description": "Automatic Rimless Floor Mounted WC With Electronic PP Seat Cover, Adjustable Seat, Air, Water temperature, Night light, Fixing Accessories And Accessories Set, Size: 390x685x465 mm, S Trap- 300 mm",
-            "description_ar": None,
             "price": 2999.00,
             "offer_price": None,
             "category_id": "2c578103-6b53-4c5f-a35f-3b1ea807025f", # Sanitaryware
