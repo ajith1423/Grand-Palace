@@ -1420,10 +1420,17 @@ async def get_products(
     }
 
 @api_router.get("/products/all")
-async def get_all_products(admin: dict = Depends(require_admin), page: int = 1, limit: int = 50):
+async def get_all_products(
+    admin: dict = Depends(require_admin), 
+    page: int = 1, 
+    limit: int = 50,
+    sort_by: Optional[str] = "created_at",
+    sort_order: Optional[str] = "desc"
+):
+    sort_dir = -1 if sort_order == "desc" else 1
     skip = (page - 1) * limit
     total = await db.products.count_documents({})
-    products = await db.products.find({}, {"_id": 0}).skip(skip).limit(limit).to_list(limit)
+    products = await db.products.find({}, {"_id": 0}).sort(sort_by, sort_dir).skip(skip).limit(limit).to_list(limit)
     return {"products": products, "total": total, "page": page, "pages": (total + limit - 1) // limit}
 
 # ==================== TWILIO OTP ENDPOINTS ====================

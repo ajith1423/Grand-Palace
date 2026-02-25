@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 import AdminLayout from '@/components/AdminLayout';
@@ -185,6 +185,7 @@ export const AdminProducts = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [sortOption, setSortOption] = useState('newest');
   const [formData, setFormData] = useState({
     name: '', description: '', price: '', offer_price: '', category_id: '', sku: '', stock: '', brand: '', images: '', is_active: true, is_featured: false,
     highlights: '', specifications: '', box_contents: '', faqs: ''
@@ -313,14 +314,32 @@ export const AdminProducts = () => {
     return cat ? cat.name : '';
   };
 
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = !searchQuery ||
-      (p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (p.sku || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (p.brand || '').toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = categoryFilter === 'all' || p.category_id === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredAndSortedProducts = useMemo(() => {
+    let result = products.filter(p => {
+      const matchesSearch = !searchQuery ||
+        (p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.sku || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.brand || '').toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = categoryFilter === 'all' || p.category_id === categoryFilter;
+      return matchesSearch && matchesCategory;
+    });
+
+    // Apply sorting
+    return [...result].sort((a, b) => {
+      switch (sortOption) {
+        case 'az':
+          return (a.name || '').localeCompare(b.name || '');
+        case 'za':
+          return (b.name || '').localeCompare(a.name || '');
+        case 'newest':
+          return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+        case 'oldest':
+          return new Date(a.created_at || 0) - new Date(b.created_at || 0);
+        default:
+          return 0;
+      }
+    });
+  }, [products, searchQuery, categoryFilter, sortOption]);
 
   if (loading) return <AdminLayout title="Products" subtitle="Manage your product catalog"><div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-gold" /></div></AdminLayout>;
 
@@ -341,8 +360,17 @@ export const AdminProducts = () => {
             {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Select value={sortOption} onValueChange={setSortOption}>
+          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Sort By" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">New to Old</SelectItem>
+            <SelectItem value="oldest">Old to New</SelectItem>
+            <SelectItem value="az">A to Z</SelectItem>
+            <SelectItem value="za">Z to A</SelectItem>
+          </SelectContent>
+        </Select>
         <Badge variant="outline" className="flex items-center gap-1 h-10 px-4 text-sm">
-          <Package className="h-4 w-4" />{filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}
+          <Package className="h-4 w-4" />{filteredAndSortedProducts.length} product{filteredAndSortedProducts.length !== 1 ? 's' : ''}
         </Badge>
         <Button onClick={() => { setEditingProduct(null); setFormData({ name: '', description: '', price: '', offer_price: '', category_id: '', sku: '', stock: '', brand: '', images: '', is_active: true, is_featured: false, highlights: '', specifications: '', box_contents: '', faqs: '' }); setShowForm(true); }} className="bg-gold text-navy-dark"><Plus className="h-4 w-4 mr-2" />Add Product</Button>
       </div>
@@ -579,7 +607,7 @@ export const AdminProducts = () => {
         </Card>
       ) : null}
 
-      {filteredProducts.length === 0 && !showForm ? (
+      {filteredAndSortedProducts.length === 0 && !showForm ? (
         <div className="text-center py-20">
           <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Package className="h-10 w-10 text-gray-300" />
@@ -596,7 +624,7 @@ export const AdminProducts = () => {
           <Table>
             <TableHeader><TableRow><TableHead>Image</TableHead><TableHead>Name</TableHead><TableHead>SKU</TableHead><TableHead>Category</TableHead><TableHead>Price</TableHead><TableHead>Stock</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
             <TableBody>
-              {filteredProducts.map((p) => (
+              {filteredAndSortedProducts.map((p) => (
                 <TableRow key={p.id} className="hover:bg-gray-50/50">
                   <TableCell><div className="w-12 h-12 rounded-lg overflow-hidden bg-muted">{p.images?.[0] ? <img src={p.images[0]} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="w-full h-full p-2 text-muted-foreground" />}</div></TableCell>
                   <TableCell><div className="font-medium text-navy">{p.name}</div><div className="text-xs text-muted-foreground">{p.brand}</div></TableCell>

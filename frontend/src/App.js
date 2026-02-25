@@ -91,12 +91,12 @@ const HomePage = () => {
   useEffect(() => {
     const fetchFeatured = async () => {
       try {
-        const res = await axios.get(`${API}/products?featured=true&limit=20`);
+        const res = await axios.get(`${API}/products?featured=true&sort_by=name&sort_order=asc&limit=20`);
         setFeaturedProducts(res.data.products);
       } catch (e) { console.error('Failed to fetch featured products'); }
     };
     fetchFeatured();
-  }, []);
+  }, [API]);
 
   return (
     <main className="flex-1">
@@ -248,7 +248,7 @@ const ProductsPage = () => {
   const [viewMode, setViewMode] = useState('grid');
   const categoryId = searchParams.get('category');
   const search = searchParams.get('search');
-  const sortBy = searchParams.get('sort') || 'created_at';
+  const sortBy = searchParams.get('sort') || 'name';
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -257,8 +257,13 @@ const ProductsPage = () => {
         const params = new URLSearchParams();
         if (categoryId) params.append('category_id', categoryId);
         if (search) params.append('search', search);
-        params.append('sort_by', sortBy === 'price_asc' || sortBy === 'price_desc' ? 'price' : sortBy);
-        params.append('sort_order', sortBy === 'price_asc' ? 'asc' : 'desc');
+
+        // Default to name A-Z if not specified or set to name
+        const effectiveSortBy = sortBy === 'price_asc' || sortBy === 'price_desc' ? 'price' : 'name';
+        const effectiveSortOrder = sortBy === 'price_asc' ? 'asc' : (sortBy === 'price_desc' ? 'desc' : 'asc');
+
+        params.append('sort_by', effectiveSortBy);
+        params.append('sort_order', effectiveSortOrder);
         params.append('limit', 20);
         const res = await axios.get(`${API}/products?${params.toString()}`);
         setProducts(res.data.products);
@@ -267,7 +272,7 @@ const ProductsPage = () => {
       setLoading(false);
     };
     fetchProducts();
-  }, [categoryId, search, sortBy]);
+  }, [categoryId, search, sortBy, API]);
 
   const selectedCategory = allCategoriesFlat.find(c => c.id === categoryId);
 
@@ -292,14 +297,6 @@ const ProductsPage = () => {
             <div className="flex justify-between items-center gap-4 mb-6">
               <div><h1 className="text-2xl font-bold text-navy">{search ? `Search: "${search}"` : selectedCategory?.name || 'All Products'}</h1><p className="text-muted-foreground">{total} products found</p></div>
               <div className="flex items-center gap-3">
-                <Select value={sortBy} onValueChange={(v) => setSearchParams(p => { p.set('sort', v); return p; })}>
-                  <SelectTrigger className="w-[180px]"><SelectValue placeholder="Sort by" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="created_at">Newest</SelectItem>
-                    <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                    <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                  </SelectContent>
-                </Select>
                 <div className="flex border rounded-lg overflow-hidden">
                   <button onClick={() => setViewMode('grid')} className={`p-2 ${viewMode === 'grid' ? 'bg-gold text-navy-dark' : ''}`}><Grid className="h-4 w-4" /></button>
                   <button onClick={() => setViewMode('list')} className={`p-2 ${viewMode === 'list' ? 'bg-gold text-navy-dark' : ''}`}><List className="h-4 w-4" /></button>

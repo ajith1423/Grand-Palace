@@ -46,10 +46,21 @@ export const AppProvider = ({ children }) => {
     try {
       const res = await axios.get(`${API}/categories`);
       // API now returns main categories with children arrays
-      setCategories(res.data);
+      // Sort main categories A-Z
+      const sortedCategories = [...res.data].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+      // Sort children of each category A-Z
+      sortedCategories.forEach(cat => {
+        if (cat.children && Array.isArray(cat.children)) {
+          cat.children.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        }
+      });
+
+      setCategories(sortedCategories);
+
       // Build flat list for lookups
       const flat = [];
-      res.data.forEach(cat => {
+      sortedCategories.forEach(cat => {
         flat.push(cat);
         if (cat.children) {
           cat.children.forEach(child => flat.push(child));
@@ -59,7 +70,7 @@ export const AppProvider = ({ children }) => {
     } catch (e) {
       console.error('Failed to fetch categories', e);
     }
-  }, []);
+  }, [API]);
 
   const checkAuth = useCallback(async () => {
     const token = localStorage.getItem('token');
