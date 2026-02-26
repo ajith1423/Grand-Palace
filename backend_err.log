@@ -1,0 +1,7 @@
+INFO:     Will watch for changes in these directories: ['C:\\React-Project\\Gpgt\\backend']
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     Started reloader process [34556] using StatReload
+INFO:     Started server process [34936]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+2026-02-26 11:49:40,022 - httpx - INFO - HTTP Request: GET https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data "HTTP/1.1 200 OK"

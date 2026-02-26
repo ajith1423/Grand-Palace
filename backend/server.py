@@ -5,9 +5,10 @@ from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
-from dotenv import load_dotenv
-load_dotenv()
+import anyio
 import logging
+import smtplib
+from email.message import EmailMessage
 from pathlib import Path
 from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional, Dict, Any
@@ -50,8 +51,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch, cm
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
 
 # Twilio Config
 TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
@@ -64,9 +64,6 @@ if TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN:
         twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
     except Exception as e:
         print(f"Twilio initialization warning: {e}")
-from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -84,10 +81,13 @@ JWT_EXPIRATION_HOURS = 24
 # Stripe Config
 STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', 'sk_test_emergent')
 
-# SendGrid Config
-SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', '')
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'noreply@gpgt.ae')
-ADMIN_EMAIL = 'ajith@lenokinfotech'
+# SMTP Config
+SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
+SMTP_PORT = int(os.environ.get('SMTP_PORT', 587))
+SMTP_USER = os.environ.get('SMTP_USER', '')
+SMTP_PASS = os.environ.get('SMTP_PASS', '')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'sushmiwilliam@gmail.com')
+ADMIN_EMAIL = 'sales@gpgt.ae'
 
 # Frontend URL for redirects
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://quote-catalog-1.preview.emergentagent.com')
@@ -97,6 +97,23 @@ GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
 GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
 
 app = FastAPI(title="GPGT E-Commerce API")
+
+# CORS Configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://grand-palace.onrender.com",
+        "https://grand-palace-backend.onrender.com",
+        "http://localhost:3000",
+        "http://localhost:3002",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3002"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 api_router = APIRouter(prefix="/api")
 security = HTTPBearer(auto_error=False)
 
@@ -108,7 +125,6 @@ app.include_router(chat_routes.router)
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-
 # ==================== MODELS ====================
 
 class UserCreate(BaseModel):
@@ -405,7 +421,7 @@ async def get_settings():
         "company_email": "sales@gpgt.ae",
         "whatsapp_number": "+971 54 568 0916",
         "delivery_emirates": ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Umm Al Quwain", "Ras Al Khaimah", "Fujairah"],
-        "admin_notification_email": "ajith@lenokinfotech",
+        "admin_notification_email": "sales@gpgt.ae",
         # Firebase settings
         "firebase_enabled": False,
         "firebase_api_key": "",
@@ -453,9 +469,9 @@ async def create_notification(notification_type: str, title: str, message: str, 
     return notification
 
 async def send_order_email(order: dict, to_admin: bool = False):
-    """Send order notification email"""
-    if not SENDGRID_API_KEY:
-        logger.warning("SendGrid API key not configured, skipping email")
+    """Send order notification email via SMTP"""
+    if not SMTP_USER or not SMTP_PASS:
+        logger.warning("SMTP credentials not configured, skipping email")
         return False
     
     settings = await get_settings()
@@ -478,25 +494,23 @@ async def send_order_email(order: dict, to_admin: bool = False):
             <p style="color: #856404; margin: 5px 0 0;">This order requires manual payment processing. Please contact the customer to arrange payment.</p>
         </div>
         """
-    
-    subject = f"New Order #{order['order_number']} - Action Required" if to_admin and not settings.get("payment_enabled", True) else (
-        f"New Order #{order['order_number']}" if to_admin else f"Order Confirmation - #{order['order_number']}"
-    )
+        
+    subject = f"New Order: #{order['order_number']}" if to_admin else f"Order Confirmation: #{order['order_number']}"
     
     items_html = ""
-    for item in order.get("items", []):
+    for item in order.get('items', []):
         items_html += f"""
         <tr>
-            <td style="padding: 10px; border-bottom: 1px solid #eee;">{item['product_name']}</td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">{item['quantity']}</td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">AED {item['unit_price']:.2f}</td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">AED {item['total_price']:.2f}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee;">{item.get('product_name', 'Product')}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">{item.get('quantity', 0)}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">AED {item.get('unit_price', 0):.2f}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">AED {item.get('total_price', 0):.2f}</td>
         </tr>
         """
     
     html_content = f"""
     <html>
-    <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
         <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2a4a70 100%); padding: 20px; text-align: center;">
             <h1 style="color: #d4af37; margin: 0;">Grand Palace General Trading</h1>
             <p style="color: #fff; margin: 5px 0;">Quality Building Materials</p>
@@ -548,14 +562,33 @@ async def send_order_email(order: dict, to_admin: bool = False):
     </html>
     """
     
-    try:
-        message = Mail(from_email=SENDER_EMAIL, to_emails=recipient, subject=subject, html_content=html_content)
-        sg = SendGridAPIClient(SENDGRID_API_KEY)
-        response = sg.send(message)
-        return response.status_code == 202
-    except Exception as e:
-        logger.error(f"Email send failed: {e}")
-        return False
+    def send_sync():
+        try:
+            msg = EmailMessage()
+            msg.set_content("Please view this email in an HTML-capable client.")
+            msg.add_alternative(html_content, subtype='html')
+            msg['Subject'] = subject
+            msg['From'] = SENDER_EMAIL
+            msg['To'] = recipient
+
+            # Send the email
+            if SMTP_PORT == 465:
+                with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=20) as server:
+                    server.login(SMTP_USER, SMTP_PASS)
+                    server.send_message(msg)
+            else:
+                with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20) as server:
+                    server.starttls()
+                    server.login(SMTP_USER, SMTP_PASS)
+                    server.send_message(msg)
+                
+            logger.info(f"Email sent successfully to {recipient}")
+            return True
+        except Exception as e:
+            logger.error(f"Email send failed: {e}")
+            return False
+
+    return await anyio.to_thread.run_sync(send_sync)
 
 async def generate_invoice_pdf(order: dict) -> bytes:
     """Generate PDF invoice for an order"""
@@ -2304,7 +2337,13 @@ async def create_order(order: OrderCreate, background_tasks: BackgroundTasks, us
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
     
-    await db.orders.insert_one(order_doc)
+    print(f"DEBUG: Inserting order {order_number} into collection {db.orders.name} in DB {db.name}")
+    try:
+        result = await db.orders.insert_one(order_doc)
+        print(f"DEBUG: Inserted order. Result ID: {result.inserted_id}")
+    except Exception as e:
+        print(f"DEBUG: FAILED TO INSERT ORDER: {e}")
+        raise e
     
     # Update stock
     for item in order.items:
@@ -2316,15 +2355,24 @@ async def create_order(order: OrderCreate, background_tasks: BackgroundTasks, us
         await db.carts.delete_one(query)
     
     # Handle payment
-    if order.payment_method == "cod" or not settings.get("payment_enabled", True):
+    if order.payment_method == "cod" or order.payment_method == "quotation" or not settings.get("payment_enabled", True):
         order_doc["status"] = "confirmed"
-        order_doc["payment_status"] = "cod" if order.payment_method == "cod" else "pending"
+        if order.payment_method == "cod":
+            order_doc["payment_status"] = "cod"
+        elif order.payment_method == "quotation":
+            order_doc["payment_status"] = "pending"
+            order_doc["status"] = "pending" # Quotations start as pending
+        else:
+            order_doc["payment_status"] = "pending"
+            
         await db.orders.update_one({"id": order_id}, {"$set": {"status": order_doc["status"], "payment_status": order_doc["payment_status"]}})
         
         # Send email notification
+        print(f"DEBUG: Adding email tasks for order {order_number}")
         background_tasks.add_task(send_order_email, order_doc, to_admin=True)
         background_tasks.add_task(send_order_email, order_doc, to_admin=False)
     
+    print(f"DEBUG: Creating notification for order {order_number}")
     # Create notification for new order
     customer_name = order.shipping_address.full_name
     await create_notification(
@@ -3885,21 +3933,6 @@ async def root():
     return {"message": "GPGT E-Commerce API", "version": "1.0.0"}
 
 app.include_router(api_router)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://grand-palace.onrender.com",
-        "https://grand-palace-backend.onrender.com",
-        "http://localhost:3000",
-        "http://localhost:3002",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:3002"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

@@ -390,9 +390,7 @@ const CheckoutPage = () => {
   const [showVerificationModal, setShowVerificationModal] = useState(false);
 
   // Check if user email is verified (required for checkout)
-  // Allow guests (no user) to always proceed since they provide email in the form.
-  // For logged-in users, check email_verified flag.
-  const emailVerified = !user || user?.email_verified || user?.role === 'admin';
+  const emailVerified = user?.email_verified || user?.role === 'admin';
 
   // Check if prices are hidden (quotation mode) or both payment methods are disabled
   const showPrices = settings?.show_prices !== false;
@@ -414,37 +412,25 @@ const CheckoutPage = () => {
     setLoading(true);
     try {
       if (isQuotationMode) {
-        // Submit as enquiry - send cart details to admin
-        const enquiryData = {
-          items: cart.items.map(item => ({
-            product_id: item.product_id,
-            product_name: item.product?.name,
-            product_sku: item.product?.sku,
-            quantity: item.quantity,
-            unit_price: showPrices ? (item.product?.offer_price || item.product?.price) : null,
-            total_price: showPrices ? item.total_price : null
-          })),
-          customer: {
-            name: formData.full_name,
-            email: formData.email,
-            phone: formData.phone
-          },
+        // Submit as order with "quotation" payment method
+        const orderData = {
+          items: cart.items.map(item => ({ product_id: item.product_id, quantity: item.quantity })),
           shipping_address: {
+            full_name: formData.full_name,
+            email: formData.email,
+            phone: formData.phone,
             address_line1: formData.address_line1,
             city: formData.city,
             emirate: formData.emirate
           },
-          subtotal: showPrices ? cart.subtotal : null,
-          vat: showPrices ? cart.vat : null,
-          shipping: showPrices ? cart.shipping : null,
-          total: showPrices ? cart.total : null,
-          notes: formData.notes,
-          is_quotation_request: !showPrices
+          payment_method: 'quotation',
+          notes: formData.notes
         };
+        const params = sessionId ? { session_id: sessionId } : {};
+        const res = await axios.post(`${API}/orders`, orderData, { headers: getAuthHeaders(), params });
 
-        const res = await axios.post(`${API}/cart-enquiry`, enquiryData, { headers: getAuthHeaders() });
         toast.success(showPrices ? 'Enquiry submitted successfully! We will contact you soon.' : 'Quotation request submitted! We will send you pricing shortly.');
-        navigate(`/enquiry-confirmation/${res.data.enquiry_id}`);
+        navigate(`/order-confirmation/${res.data.order_id}`);
       } else {
         // Normal order flow
         const orderData = { items: cart.items.map(item => ({ product_id: item.product_id, quantity: item.quantity })), shipping_address: { full_name: formData.full_name, email: formData.email, phone: formData.phone, address_line1: formData.address_line1, city: formData.city, emirate: formData.emirate }, payment_method: paymentMethod, notes: formData.notes };
