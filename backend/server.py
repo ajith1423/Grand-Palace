@@ -3153,7 +3153,7 @@ async def generate_erp_invoice_pdf(invoice: dict, settings: dict) -> bytes:
     company_name = settings.get('company_name', 'Grand Palace General Trading')
     company_address = settings.get('company_address', 'Shop No:3 Al Sajaya Building, Al Qusais 2, Damascus St.  244, Sector, Dubai, United Arab Emirates')
     company_phone = settings.get('company_phone', '+971 4 456 7890')
-    company_email = settings.get('company_email', 'info@gpgt.ae')
+    company_email = settings.get('company_email', 'sales@gpgt.ae')
     company_trn = settings.get('company_trn', '') or settings.get('vat_trn', '')
     
     # Header

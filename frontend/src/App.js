@@ -189,7 +189,7 @@ const HomePage = () => {
       <section className="bg-white">
         <div className="w-full h-80 md:h-96 relative border-y border-gray-200">
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3607.411651588147!2d55.378902!3d25.290389!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e5f5db8111e695d%3A0xd71c8eff4b8ea811!2sGrand%20Palace%20General%20Trading%20LLC!5e0!3m2!1sen!2sae!4v1709477382949!5m2!1sen!2sae"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3607.728522307559!2d55.3825177!3d25.2764152!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e5f5d56e1c673b9%3A0xdb1f4d0ce5bc429d!2sGrand%20Palace%20General%20Trading%20L.L.C!5e0!3m2!1sen!2sae!4v1709477382949!5m2!1sen!2sae"
             width="100%"
             height="100%"
             style={{ border: 0 }}
@@ -996,7 +996,7 @@ const ContactPage = () => {
                 <CardContent className="p-6">
                   <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-4"><Mail className="h-5 w-5 text-gold" /></div>
                   <h3 className="font-semibold text-navy mb-1">Email</h3>
-                  <a href={`mailto:${settings.company_email}`} className="text-gold hover:underline text-sm">{settings.company_email || 'info@gpgt.ae'}</a>
+                  <a href={`mailto:${settings.company_email}`} className="text-gold hover:underline text-sm">{settings.company_email || 'sales@gpgt.ae'}</a>
                 </CardContent>
               </Card>
             </div>
@@ -1004,7 +1004,7 @@ const ContactPage = () => {
             <Card className="overflow-hidden border-0 shadow-lg">
               <div className="h-80 w-full bg-gray-100 flex items-center justify-center relative">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3607.411651588147!2d55.378902!3d25.290389!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e5f5db8111e695d%3A0x82dbb277d079313!2sAl%20Sajaya%20Building!5e0!3m2!1sen!2sae!4v1709477382949!5m2!1sen!2sae"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3607.728522307559!2d55.3825177!3d25.2764152!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e5f5d56e1c673b9%3A0xdb1f4d0ce5bc429d!2sGrand%20Palace%20General%20Trading%20L.L.C!5e0!3m2!1sen!2sae!4v1709477382949!5m2!1sen!2sae"
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}
