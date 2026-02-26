@@ -49,19 +49,19 @@ const Footer = () => {
             <h4 className="text-lg font-semibold mb-4">Contact Us</h4>
             <div className="space-y-3">
               <p className="flex items-center gap-2 text-gray-400">
-                <MapPin className="h-4 w-4 text-gold" />
+                <MapPin className="h-5 w-5 text-gold shrink-0" />
                 {settings.company_address || 'Shop No:3 Al Sajaya Building, Al Qusais 2, Damascus St.  244, Sector, Dubai, United Arab Emirates'}
               </p>
               <a href={`tel:${settings.company_mobile || '+971545680916'}`} className="flex items-center gap-2 text-gray-400 hover:text-gold" title="Mobile">
-                <Phone className="h-4 w-4 text-gold" />
+                <Phone className="h-5 w-5 text-gold shrink-0" />
                 {settings.company_mobile || '+971 54 568 0916'}
               </a>
               <a href={`tel:${settings.company_phone || '+97142727815'}`} className="flex items-center gap-2 text-gray-400 hover:text-gold" title="Landline">
-                <Phone className="h-4 w-4 text-gold" />
+                <Phone className="h-5 w-5 text-gold shrink-0" />
                 {settings.company_phone || '+971 4 272 7815'}
               </a>
               <a href={`mailto:sales@gpgt.ae`} className="flex items-center gap-2 text-gray-400 hover:text-gold">
-                <Mail className="h-4 w-4 text-gold" />
+                <Mail className="h-5 w-5 text-gold shrink-0" />
                 {settings.company_email || 'sales@gpgt.ae'}
               </a>
             </div>
