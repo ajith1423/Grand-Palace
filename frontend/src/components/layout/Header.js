@@ -107,11 +107,11 @@ const MegaMenu = ({ categories, onClose }) => {
 
   return (
     <div
-      className="absolute left-0 top-full w-screen bg-white shadow-2xl z-50"
+      className="absolute right-0 left-0 top-full w-full bg-white shadow-2xl z-50 border-b border-gray-200"
       style={{ animation: 'megaMenuFadeIn 0.2s ease-out' }}
       data-testid="mega-menu"
     >
-      <div className="container mx-auto flex">
+      <div className="flex pl-12">
         {/* Categories List - Left Side */}
         <div className="w-56 bg-white border-r border-gray-200 py-4 flex-shrink-0">
           {categories.map((cat) => {
@@ -340,7 +340,6 @@ const Header = () => {
             <ul className="hidden md:flex items-center">
               {/* All Categories with Mega Menu */}
               <li
-                className="relative"
                 onMouseEnter={() => { setMegaMenuOpen(true); setActiveDropdown(null); }}
                 onMouseLeave={() => setMegaMenuOpen(false)}
               >

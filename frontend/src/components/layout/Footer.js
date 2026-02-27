@@ -16,10 +16,11 @@ const Footer = () => {
           <div>
             <div className="mb-6">
               <img
-                src={settings?.logo || '/logo1.jpeg'}
+                src={settings?.logo || '/logo1.png'}
                 alt="Grand Palace Logo"
-                className="h-16 w-auto object-contain bg-white p-2 rounded-lg"
+                className="h-10 w-auto object-contain"
               />
+              <p className="text-gold font-bold text-[10px] tracking-wider uppercase mt-1">In-house Brand</p>
             </div>
             <p className="text-gray-400 mb-4">Your trusted partner in construction materials and general trading across UAE.</p>
           </div>
