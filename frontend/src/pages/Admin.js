@@ -822,6 +822,7 @@ export const AdminCategories = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [formData, setFormData] = useState({ name: '', name_ar: '', description: '', image: '', icon: '', is_active: true });
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (!user || user.role !== 'admin') { navigate('/login'); return; }
@@ -832,6 +833,27 @@ export const AdminCategories = () => {
   const fetchCategories = async () => {
     try { const res = await axios.get(`${API}/categories/all`, { headers: getAuthHeaders() }); setCategories(res.data); } catch (e) { toast.error('Failed to load categories'); }
     setLoading(false);
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    const uploadFormData = new FormData();
+    uploadFormData.append('file', file);
+
+    try {
+      const res = await axios.post(`${API}/upload/image`, uploadFormData, {
+        headers: { ...getAuthHeaders(), 'Content-Type': 'multipart/form-data' }
+      });
+      setFormData({ ...formData, image: res.data.url });
+      toast.success('Image uploaded successfully');
+    } catch (err) {
+      toast.error('Failed to upload image');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -876,7 +898,51 @@ export const AdminCategories = () => {
               <div className="space-y-2"><Label>Name (English) *</Label><Input required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
               <div className="space-y-2"><Label>Name (Arabic)</Label><Input value={formData.name_ar} onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })} dir="rtl" /></div>
               <div className="space-y-2 md:col-span-2"><Label>Description</Label><Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Image URL</Label><Input value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} /></div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label>Category Image</Label>
+                <div className="flex flex-col md:flex-row gap-4 items-start">
+                  <div className="w-full md:w-32 h-32 bg-muted rounded-lg overflow-hidden border">
+                    {formData.image ? (
+                      <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-muted-foreground">
+                        <ImageIcon className="h-8 w-8" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-4 w-full">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Image URL"
+                        value={formData.image}
+                        onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                        className="flex-1"
+                      />
+                      <input
+                        type="file"
+                        id="cat-image-upload"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageUpload}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('cat-image-upload').click()}
+                        disabled={uploading}
+                      >
+                        {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+                        Upload
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Upload an image or paste a URL. Supports JPG, PNG, WebP.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-2"><Label>Icon (Lucide icon name)</Label><Input value={formData.icon} onChange={(e) => setFormData({ ...formData, icon: e.target.value })} placeholder="e.g. Droplets, Zap" /></div>
               <div className="flex items-center gap-2"><Switch checked={formData.is_active} onCheckedChange={(v) => setFormData({ ...formData, is_active: v })} /><Label>Active</Label></div>
               <div className="md:col-span-2 flex gap-2"><Button type="submit" className="bg-gold text-navy-dark">Save</Button><Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button></div>

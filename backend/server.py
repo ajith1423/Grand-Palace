@@ -104,6 +104,7 @@ app.add_middleware(
     allow_origins=[
         "https://grand-palace.onrender.com",
         "https://grand-palace-backend.onrender.com",
+        "https://demo-gpgt-ae.onrender.com",
         "http://localhost:3000",
         "http://localhost:3002",
         "http://127.0.0.1:3000",
@@ -1333,7 +1334,7 @@ async def get_uploaded_file(filename: str):
 
 @api_router.get("/categories")
 async def get_categories():
-    all_cats = await db.categories.find({"is_active": True}, {"_id": 0}).to_list(200)
+    all_cats = await db.categories.find({"is_active": True}, {"_id": 0}).to_list(1000)
     # Build hierarchical structure: main categories with children
     main_cats = [c for c in all_cats if not c.get("parent_id")]
     sub_cats = [c for c in all_cats if c.get("parent_id")]
@@ -1355,7 +1356,7 @@ async def get_categories():
 
 @api_router.get("/categories/all")
 async def get_all_categories(admin: dict = Depends(require_admin)):
-    categories = await db.categories.find({}, {"_id": 0}).to_list(100)
+    categories = await db.categories.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
     return categories
 
 @api_router.get("/categories/{category_id}")
